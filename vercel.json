@@ -2,7 +2,6 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.cesmetekneleri.com" }], "destination": "https://cesmetekneleri.com/:path*", "permanent": true },
     { "source": "/index", "destination": "/", "permanent": true },
     { "source": "/(home|anasayfa|tr)", "destination": "/", "permanent": true },
     { "source": "/tr/:path*", "destination": "/:path*", "permanent": true },
