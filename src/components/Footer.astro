@@ -1,0 +1,319 @@
+---
+import { Image } from 'astro:assets';
+import logoSvg from '../assets/poseidon-logo.svg?raw';
+import Icon from './Icon.astro';
+import { LANGS, LOCALE, ROUTES, SITE, waLink, type Lang, type RouteKey } from '../site';
+import { TOURS, bookingUrl } from '../data/tours';
+import { SOCIAL } from '../i18n/sections';
+import { t } from '../i18n';
+import { alts } from '../i18n/alts';
+import ctaImg from '../assets/photos/tekne-yuzme-molasi.jpg';
+
+interface Props { lang: Lang; route?: RouteKey | null }
+const { lang, route = null } = Astro.props;
+const d = t(lang);
+const year = new Date().getFullYear();
+const here = route ?? 'home';
+const socials = [
+  { href: SOCIAL.instagram, icon: 'instagram' as const, label: 'Instagram' },
+  { href: SOCIAL.facebook, icon: 'facebook' as const, label: 'Facebook' },
+  { href: SOCIAL.youtube, icon: 'youtube' as const, label: 'YouTube' },
+];
+---
+<footer class="ft">
+  <div class="wrap">
+    <div class="ft__cta">
+      <Image src={ctaImg} alt="" widths={[800, 1400]} sizes="(max-width: 860px) 100vw, 1200px" class="ft__cta-img" />
+      <div class="ft__cta-body">
+        <p class="ft__eyebrow">{d.footer.since}</p>
+        <h2>{d.footer.cta}</h2>
+        <p>{d.footer.ctaText}</p>
+      </div>
+      <div class="ft__cta-btns">
+        <a class="btn btn--light" href={bookingUrl(TOURS[0], lang)}>{d.nav.book}<Icon name="arrow" /></a>
+        <a class="ft__wa" href={waLink(d.waGreeting)} target="_blank" rel="noopener"><Icon name="whatsapp" />WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="ft__grid">
+      <div class="ft__brand">
+        <a class="ft__logo" href={ROUTES.home[lang]} aria-label="Poseidon Çeşme" set:html={logoSvg} />
+        <p>{d.footer.tagline}</p>
+        <ul class="ft__social">
+          {socials.map((so) => (
+            <li><a href={so.href} target="_blank" rel="noopener" aria-label={so.label}><Icon name={so.icon} /></a></li>
+          ))}
+        </ul>
+      </div>
+      <nav class="ft__col" aria-label={d.footer.pages}>
+        <p class="ft__h">{d.footer.pages}</p>
+        <ul>
+          <li><a href={ROUTES.home[lang]}>{d.nav.home}</a></li>
+          <li><a href={ROUTES.tours[lang]}>{d.nav.tours}</a></li>
+          <li><a href={ROUTES.about[lang]}>{d.nav.about}</a></li>
+          <li><a href={ROUTES.faq[lang]}>{d.nav.faq}</a></li>
+          <li><a href={ROUTES.contact[lang]}>{d.nav.contact}</a></li>
+        </ul>
+      </nav>
+      <nav class="ft__col" aria-label={d.nav.tours}>
+        <p class="ft__h">{d.nav.tours}</p>
+        <ul>
+          {TOURS.map((tr) => <li><a href={ROUTES[tr.key][lang]}>{tr[lang].title}</a></li>)}
+        </ul>
+      </nav>
+      <div class="ft__col">
+        <p class="ft__h">{d.footer.contact}</p>
+        <ul class="ft__contact">
+          <li><Icon name="phone" /><a href={`tel:${SITE.phoneHref}`}>{SITE.phone}</a></li>
+          <li><Icon name="phone" /><a href={`tel:${SITE.phone2Href}`}>{SITE.phone2}</a></li>
+          <li><Icon name="mail" /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+          <li><Icon name="pin" /><span>{SITE.address.street}, {SITE.address.postal} {SITE.address.city}/{SITE.address.region}</span></li>
+          <li><Icon name="clock" /><span>{alts(lang).hours}</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ft__base">
+      <span>© {year} Poseidon Çeşme · {SITE.name}. {d.footer.rights}</span>
+      <ul class="ft__langs">
+        {LANGS.map((l) => (
+          <li><a href={ROUTES[here][l]} hreflang={l} lang={l} aria-current={l === lang ? 'true' : undefined}>{LOCALE[l].short}</a></li>
+        ))}
+      </ul>
+    </div>
+  </div>
+  <div class="ft__mark" aria-hidden="true" set:html={logoSvg} />
+</footer>
+
+<style>
+  .ft {
+    position: relative;
+    overflow: hidden;
+    margin-top: var(--section);
+    padding-top: 1px;
+    background: radial-gradient(120% 80% at 100% 0%, #123761 0%, var(--navy) 50%, #06142a 100%);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.9375rem;
+  }
+  .ft a:not(.btn) {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .ft a:not(.btn):hover {
+    color: #fff;
+  }
+  .ft > .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ft__cta {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 1.5rem 3rem;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding: clamp(2rem, 5vw, 3.5rem);
+    min-height: 18rem;
+    border-radius: 28px;
+    overflow: hidden;
+    color: #fff;
+  }
+  .ft__cta :global(.ft__cta-img) {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ft__cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(90deg, rgba(6, 20, 42, 0.88) 0%, rgba(6, 20, 42, 0.55) 55%, rgba(6, 20, 42, 0.2) 100%);
+  }
+  .ft__eyebrow {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #e6c98f;
+  }
+  .ft__cta h2 {
+    margin: 0.6rem 0 0.5rem;
+    color: #fff;
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .ft__cta-body p:last-child {
+    max-width: 30rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .ft__cta-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .ft__cta-btns .btn {
+    min-height: 3.25rem;
+    padding-inline: 1.5rem;
+  }
+  .ft__wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 3.25rem;
+    padding: 0 1.4rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-weight: 700;
+    color: #fff !important;
+  }
+  .ft__wa :global(svg) {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .ft__grid {
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr 1.2fr 1.3fr;
+    gap: 2.5rem;
+    padding: clamp(3rem, 6vw, 4.5rem) 0 3rem;
+  }
+  .ft__logo {
+    display: block;
+    width: 11rem;
+    color: #fff !important;
+    line-height: 0;
+  }
+  .ft__logo :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+  .ft__brand p {
+    margin: 1.1rem 0 1.4rem;
+    max-width: 20rem;
+  }
+  .ft__social {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .ft__social a {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .ft__social a:hover {
+    background: #fff;
+    border-color: #fff;
+    color: var(--navy);
+  }
+  .ft__social :global(svg) {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+  .ft__h {
+    margin-bottom: 1.1rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .ft__col ul {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .ft__contact li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .ft__contact :global(svg) {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.25rem;
+    color: #7fb6f2;
+  }
+
+  .ft__base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 1.4rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .ft__langs {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .ft__langs a {
+    display: block;
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+  .ft__langs a[aria-current] {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .ft__mark {
+    position: absolute;
+    left: 50%;
+    bottom: -3.5vw;
+    width: min(92vw, 1400px);
+    transform: translateX(-50%);
+    color: #fff;
+    opacity: 0.035;
+    pointer-events: none;
+    line-height: 0;
+  }
+  .ft__mark :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+
+  @media (max-width: 960px) {
+    .ft__cta {
+      grid-template-columns: 1fr;
+    }
+    .ft__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .ft__brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 1040px) {
+    .ft {
+      padding-bottom: 5.5rem;
+    }
+  }
+  @media (max-width: 520px) {
+    .ft__grid {
+      grid-template-columns: 1fr;
+    }
+    .ft__cta-btns > * {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+</style>

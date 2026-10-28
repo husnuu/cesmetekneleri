@@ -1,0 +1,489 @@
+---
+import Base from '../layouts/Base.astro';
+import PageBand from '../components/PageBand.astro';
+import Icon from '../components/Icon.astro';
+import AnimIcon from '../components/AnimIcon.astro';
+import Title from '../components/Title.astro';
+import { ROUTES, SITE, waLink, type Lang } from '../site';
+import { TOURS } from '../data/tours';
+import { faqCategories } from '../data/faq';
+import { sections } from '../i18n/sections';
+import { t } from '../i18n';
+import bandImg from '../assets/photos/cesme-tur-teknesi-seyir.jpg';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const c = d.contact;
+const p = sections(lang).contactPage;
+const f = c.form;
+const url = (r: string) => new URL(r, SITE.url).href;
+const mapsQ = encodeURIComponent(SITE.mapsQuery);
+const faqs = faqCategories(lang)[0].items.slice(0, 4);
+const jsonld = [
+  { '@context': 'https://schema.org', '@type': 'ContactPage', name: p.h1, url: url(ROUTES.contact[lang]), inLanguage: lang, about: { '@id': `${SITE.url}/#business` } },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: d.breadcrumbHome, item: url(ROUTES.home[lang]) },
+      { '@type': 'ListItem', position: 2, name: d.nav.contact, item: url(ROUTES.contact[lang]) },
+    ],
+  },
+];
+const actions = [
+  { icon: 'chat' as const, title: p.waT, desc: p.waD, value: SITE.phone, href: waLink(d.waGreeting), ext: true, cls: 'wa' },
+  { icon: 'phone' as const, title: p.callT, desc: p.callD, value: SITE.phone, href: `tel:${SITE.phoneHref}`, ext: false, cls: 'call' },
+  { icon: 'mail' as const, title: p.mailT, desc: p.mailD, value: SITE.email, href: `mailto:${SITE.email}`, ext: false, cls: 'mail' },
+];
+---
+<Base lang={lang} route="contact" title={c.title} description={c.description} ogImage={bandImg} jsonld={jsonld}>
+  <PageBand image={bandImg} eyebrow={p.eyebrow} title={p.h1} lead={p.lead} crumbs={[{ label: d.breadcrumbHome, href: ROUTES.home[lang] }, { label: d.nav.contact }]} />
+
+  <div class="wrap acts">
+    {actions.map((a) => (
+      <a class:list={['act', `act--${a.cls}`]} href={a.href} target={a.ext ? '_blank' : undefined} rel={a.ext ? 'noopener' : undefined}>
+        <span class="act__i"><AnimIcon name={a.icon} size={44} /></span>
+        <span class="act__txt">
+          <b>{a.title}</b>
+          <small>{a.desc}</small>
+          <span class="act__v">{a.value}</span>
+        </span>
+        <Icon name="arrow" class="act__arrow" />
+      </a>
+    ))}
+  </div>
+
+  <section class="wrap main">
+    <form class="form" id="wa-form" data-phone={SITE.whatsapp} data-intro={f.msgIntro} novalidate>
+      <div class="form__head">
+        <h2>{p.formTitle}</h2>
+        <p>{p.formText}</p>
+      </div>
+      <fieldset class="topics">
+        <legend>{p.topic}</legend>
+        {p.topics.map((tp, i) => (
+          <label><input type="radio" name="topic" value={tp} checked={i === 0} /><span>{tp}</span></label>
+        ))}
+      </fieldset>
+      <div class="row">
+        <label class="fld">
+          <span>{f.name}</span>
+          <input name="name" autocomplete="name" required />
+        </label>
+        <label class="fld">
+          <span>{p.tourSel}</span>
+          <select name="tour">
+            {TOURS.map((tr) => <option>{tr[lang].title}</option>)}
+          </select>
+        </label>
+      </div>
+      <label class="fld">
+        <span>{f.note}</span>
+        <textarea name="note" rows="5" required></textarea>
+      </label>
+      <div class="form__end">
+        <button class="btn" type="submit"><Icon name="whatsapp" />{f.submit}</button>
+        <a class="text-link" href={`mailto:${SITE.email}`}><Icon name="mail" />{SITE.email}</a>
+      </div>
+    </form>
+
+    <div class="aside">
+      <div class="visit">
+        <div class="map">
+          <iframe title={SITE.mapsQuery} src={`https://www.google.com/maps?q=${mapsQ}&z=15&output=embed`} loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <div class="visit__body">
+          <h2>{p.visitTitle}</h2>
+          <address>{SITE.address.street}<br />{SITE.address.postal} {SITE.address.city}, {SITE.address.region}</address>
+          <a class="btn btn--outline" href={`https://www.google.com/maps/search/?api=1&query=${mapsQ}`} target="_blank" rel="noopener"><Icon name="pin" />{c.directions}</a>
+        </div>
+      </div>
+      <div class="hours">
+        <h2><AnimIcon name="clock" size={32} />{p.hoursTitle}</h2>
+        <dl>
+          {p.hoursRows.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
+        <p class="hours__alt"><Icon name="phone" />{SITE.phone2}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap faqt">
+      <div>
+        <Title parts={['', p.faqTitle, '']} class="title--lg" />
+        <a class="btn" href={ROUTES.faq[lang]}>{p.faqMore}<Icon name="arrow" /></a>
+      </div>
+      <div class="faqt__list">
+        {faqs.map((q) => (
+          <details>
+            <summary><h3>{q.q}</h3><Icon name="plus" /></summary>
+            <p>{q.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const form = document.getElementById('wa-form') as HTMLFormElement | null;
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = form.elements.namedItem('name') as HTMLInputElement;
+    const note = form.elements.namedItem('note') as HTMLTextAreaElement;
+    for (const el of [name, note]) {
+      if (!el.value.trim()) {
+        el.focus();
+        el.closest('.fld')?.classList.add('is-err');
+        return;
+      }
+    }
+    const data = new FormData(form);
+    const text = `${form.dataset.intro}\n\n${data.get('topic')} · ${data.get('tour')}\n${data.get('name')}\n\n${data.get('note')}`;
+    window.open(`https://wa.me/${form.dataset.phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  });
+  form?.querySelectorAll('input, textarea').forEach((el) => el.addEventListener('input', () => el.closest('.fld')?.classList.remove('is-err')));
+</script>
+
+<style>
+  .acts {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: -2.75rem;
+  }
+  .act {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.4rem;
+    border-radius: var(--radius-lg);
+    background: #fff;
+    box-shadow: var(--shadow-lg);
+    text-decoration: none;
+    transition: transform 0.25s;
+  }
+  .act:hover {
+    transform: translateY(-4px);
+  }
+  .act__i {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 18px;
+    background: var(--primary-soft);
+  }
+  .act--wa .act__i {
+    background: #e3f7ea;
+  }
+  .act__txt {
+    display: grid;
+    line-height: 1.35;
+    min-width: 0;
+  }
+  .act__txt b {
+    font-size: 1.0625rem;
+    color: var(--ink-strong);
+  }
+  .act__txt small {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .act__v {
+    margin-top: 0.2rem;
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .act--wa .act__v {
+    color: #128c4a;
+  }
+  .act :global(.act__arrow) {
+    margin-left: auto;
+    flex: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .act:hover :global(.act__arrow) {
+    transform: translateX(3px);
+    color: var(--primary);
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+    padding-block: 3rem var(--section);
+  }
+  .form {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.5rem, 3.5vw, 2.5rem);
+    border-radius: var(--radius-lg);
+    background: #fff;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .form__head h2 {
+    font-size: 1.75rem;
+  }
+  .form__head p {
+    color: var(--muted);
+    font-size: 0.9375rem;
+    margin-top: 0.3rem;
+  }
+  .topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .topics legend {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--ink-strong);
+  }
+  .topics input {
+    position: absolute;
+    opacity: 0;
+  }
+  .topics span {
+    display: inline-block;
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .topics input:checked + span {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+  }
+  .topics input:focus-visible + span {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .fld {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .fld > span {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--ink-strong);
+  }
+  .fld input,
+  .fld select,
+  .fld textarea {
+    width: 100%;
+    font: 600 0.9375rem var(--font);
+    color: var(--ink-strong);
+    background: var(--bg-soft);
+    border: 1.5px solid transparent;
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    appearance: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .fld select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7682' stroke-width='1.8'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    background-size: 1.1rem;
+    padding-right: 2.5rem;
+  }
+  .fld input:focus,
+  .fld select:focus,
+  .fld textarea:focus {
+    outline: none;
+    background-color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-soft);
+  }
+  .fld.is-err input,
+  .fld.is-err textarea {
+    border-color: #d64545;
+    background: #fdf0f0;
+  }
+  .fld textarea {
+    resize: vertical;
+  }
+  .form__end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .form__end .btn {
+    min-height: 3.4rem;
+    padding-inline: 1.75rem;
+  }
+
+  .aside {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .visit {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: #fff;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .map iframe {
+    display: block;
+    width: 100%;
+    height: 15rem;
+    border: 0;
+    filter: saturate(0.85);
+  }
+  .visit__body {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: start;
+    padding: 1.25rem 1.4rem 1.4rem;
+  }
+  .visit h2,
+  .hours h2 {
+    font-size: 1.25rem;
+  }
+  address {
+    font-style: normal;
+    color: var(--ink);
+  }
+  .hours {
+    padding: 1.4rem;
+    border-radius: var(--radius-lg);
+    background: var(--navy);
+    color: #fff;
+  }
+  .hours h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #fff;
+    margin-bottom: 0.75rem;
+  }
+  .hours dl {
+    margin: 0;
+  }
+  .hours dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.6rem;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.18);
+    font-size: 0.9375rem;
+  }
+  .hours dt {
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .hours dd {
+    margin: 0;
+    font-weight: 700;
+    color: #f1dfb8;
+  }
+  .hours__alt {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .hours__alt :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .faqt {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .faqt > div:first-child {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+  .faqt__list {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .faqt details {
+    padding: 0 1.25rem;
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow);
+  }
+  .faqt summary {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 1.05rem;
+    cursor: pointer;
+  }
+  .faqt summary::-webkit-details-marker {
+    display: none;
+  }
+  .faqt summary h3 {
+    font-size: 1rem;
+  }
+  .faqt summary :global(svg) {
+    flex: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    color: var(--primary);
+    transition: transform 0.25s;
+  }
+  .faqt details[open] summary :global(svg) {
+    transform: rotate(45deg);
+  }
+  .faqt details p {
+    padding-bottom: 1.1rem;
+    font-size: 0.9375rem;
+  }
+
+  @media (max-width: 960px) {
+    .acts,
+    .main,
+    .faqt {
+      grid-template-columns: 1fr;
+    }
+    .acts {
+      margin-top: -1.5rem;
+    }
+  }
+  @media (max-width: 560px) {
+    .row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

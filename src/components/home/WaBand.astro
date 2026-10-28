@@ -1,0 +1,236 @@
+---
+import QRCode from 'qrcode';
+import Icon from '../Icon.astro';
+import AnimIcon from '../AnimIcon.astro';
+import { sections } from '../../i18n/sections';
+import { SITE, waLink, type Lang } from '../../site';
+import { t } from '../../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const w = sections(lang).wa;
+const d = t(lang);
+const href = waLink(d.waGreeting);
+const qr = await QRCode.toString(href, { type: 'svg', margin: 0, color: { dark: '#1f2a31', light: '#ffffff' } });
+const icons = ['calendar', 'seat', 'bus', 'chat'] as const;
+---
+<section class="wa">
+  <div class="wrap wa__grid">
+    <div class="wa__phone" aria-hidden="true">
+      <div class="ph">
+        <div class="ph__bar"><span class="ph__av"></span><b>Poseidon Çeşme</b><small>online</small></div>
+        <div class="ph__chat">
+          <p class="msg msg--out">{w.chatHello}</p>
+          <p class="msg msg--in">{w.chatReply}</p>
+          <p class="msg msg--typing"><span></span><span></span><span></span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="wa__main">
+      <span class="wa__app"><Icon name="whatsapp" /></span>
+      <h2>{w.title[0]}<br />{w.title[1]}</h2>
+      <div class="wa__actions">
+        <a class="btn btn--light" href={href} target="_blank" rel="noopener"><Icon name="whatsapp" />{SITE.phone}</a>
+        <figure class="wa__qr">
+          <Fragment set:html={qr} />
+          <figcaption>{w.scan}</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <ul class="wa__feats">
+      {w.items.map((it, i) => (
+        <li>
+          <span class="wa__fi"><AnimIcon name={icons[i]} size={40} /></span>
+          <div><h3>{it.t}</h3><p>{it.d}</p></div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .wa {
+    background: #2f6fd0;
+    color: #fff;
+    overflow: hidden;
+  }
+  .wa__grid {
+    display: grid;
+    grid-template-columns: 17rem 1fr 1.4fr;
+    gap: 2.5rem;
+    align-items: center;
+    padding-block: 3rem;
+  }
+  .wa__phone {
+    align-self: end;
+    margin-bottom: -3rem;
+  }
+  .ph {
+    width: 15rem;
+    height: 21rem;
+    margin-inline: auto;
+    border: 8px solid #12171c;
+    border-bottom: 0;
+    border-radius: 2.2rem 2.2rem 0 0;
+    background: #ece5dd;
+    overflow: hidden;
+    transform: rotate(-6deg) translateY(1rem);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+  }
+  .ph__bar {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.5rem;
+    align-items: center;
+    padding: 1.4rem 0.8rem 0.6rem;
+    background: #075e54;
+    font-size: 0.75rem;
+  }
+  .ph__bar small {
+    grid-column: 2;
+    opacity: 0.75;
+    font-size: 0.625rem;
+    line-height: 1;
+  }
+  .ph__av {
+    grid-row: span 2;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    background: #fff url('/apple-touch-icon.png') center / cover;
+  }
+  .ph__chat {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.8rem;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    color: #1f2a31;
+  }
+  .msg {
+    max-width: 85%;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    animation: msg-in 0.5s both;
+  }
+  .msg--out {
+    justify-self: end;
+    background: #dcf8c6;
+  }
+  .msg--in {
+    background: #fff;
+    animation-delay: 0.8s;
+  }
+  .msg--typing {
+    display: flex;
+    gap: 3px;
+    background: #fff;
+    animation-delay: 1.6s;
+  }
+  .msg--typing span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #9aa4ab;
+    animation: typing 1.2s infinite;
+  }
+  .msg--typing span:nth-child(2) { animation-delay: 0.15s; }
+  .msg--typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+  }
+  @keyframes typing {
+    30% { transform: translateY(-3px); }
+  }
+
+  .wa__app {
+    display: grid;
+    place-items: center;
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 18px;
+    background: #fff;
+    color: #25d366;
+    margin-bottom: 1.25rem;
+  }
+  .wa__app :global(svg) {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+  .wa__main h2 {
+    color: #e2edff;
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    font-weight: 500;
+    line-height: 1.25;
+  }
+  .wa__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .wa__qr {
+    margin: 0;
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+  }
+  .wa__qr :global(svg) {
+    width: 6.5rem;
+    height: 6.5rem;
+    padding: 0.4rem;
+    background: #fff;
+    border-radius: 10px;
+  }
+  .wa__qr figcaption {
+    font-size: 0.6875rem;
+    opacity: 0.85;
+  }
+  .wa__feats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 2rem;
+  }
+  .wa__feats li {
+    display: flex;
+    gap: 0.9rem;
+  }
+  .wa__fi {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 14px;
+    background: #fff;
+  }
+  .wa__feats h3 {
+    color: #fff;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  .wa__feats p {
+    font-size: 0.9375rem;
+    opacity: 0.9;
+  }
+  @media (max-width: 1100px) {
+    .wa__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .wa__phone {
+      display: none;
+    }
+  }
+  @media (max-width: 760px) {
+    .wa__grid,
+    .wa__feats {
+      grid-template-columns: 1fr;
+    }
+    .wa__qr {
+      display: none;
+    }
+  }
+</style>

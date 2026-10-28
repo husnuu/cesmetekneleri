@@ -1,0 +1,278 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageBand from '../components/PageBand.astro';
+import Title from '../components/Title.astro';
+import Icon from '../components/Icon.astro';
+import AnimIcon from '../components/AnimIcon.astro';
+import { ROUTES, SITE, type Lang } from '../site';
+import { t } from '../i18n';
+import { alts } from '../i18n/alts';
+
+import hero from '../assets/photos/cesme-tekne-turu-koy.jpg';
+import oldBoat from '../assets/photos/poseidon-eski-tekne.jpg';
+import aerial from '../assets/photos/tekne-havadan-koy.jpg';
+import cove from '../assets/photos/gizli-koy-sup-yuzme.jpg';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const a = d.about;
+const url = (r: string) => new URL(r, SITE.url).href;
+const jsonld = [
+  { '@context': 'https://schema.org', '@type': 'AboutPage', name: a.h1, url: url(ROUTES.about[lang]), inLanguage: lang, about: { '@id': `${SITE.url}/#business` } },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: d.breadcrumbHome, item: url(ROUTES.home[lang]) },
+      { '@type': 'ListItem', position: 2, name: d.nav.about, item: url(ROUTES.about[lang]) },
+    ],
+  },
+];
+const whyIcons = ['boat', 'swim', 'users'] as const;
+---
+<Base lang={lang} route="about" title={a.title} description={a.description} ogImage={hero} jsonld={jsonld}>
+  <PageBand image={hero} eyebrow={d.nav.about} title={a.h1} lead={a.lead} crumbs={[{ label: d.breadcrumbHome, href: ROUTES.home[lang] }, { label: d.nav.about }]} />
+
+  <section class="section story-wrap">
+    <div class="wrap story">
+      <div class="story__text">
+        {a.story.map((p) => <p>{p}</p>)}
+        <figure class="card">
+          <Image src={oldBoat} alt={a.oldBoatCaption} widths={[480, 800]} sizes="(max-width: 860px) 100vw, 40vw" />
+          <figcaption>{a.oldBoatCaption}</figcaption>
+        </figure>
+      </div>
+      <ol class="tl card">
+        {a.timeline.map((x) => (
+          <li><span class="tl__y">{x.year}</span><span>{x.text}</span></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap boat">
+      <div class="boat__body">
+        <span class="chip">{a.boatLabel}</span>
+        <h2>{a.boatTitle}</h2>
+        <p>{a.boatText}</p>
+        <dl class="specs">
+          {a.specs.map((s) => <div class="card"><dt>{s.k}</dt><dd>{s.v}</dd></div>)}
+        </dl>
+        <ul class="feats">
+          {a.features.map((f) => <li><Icon name="check" />{f}</li>)}
+        </ul>
+      </div>
+      <div class="boat__imgs">
+        <Image src={aerial} alt={alts(lang).aerial} widths={[600, 1000]} sizes="(max-width: 960px) 100vw, 45vw" />
+        <Image src={cove} alt={alts(lang).cove} widths={[400, 700]} sizes="(max-width: 960px) 50vw, 22vw" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <Title parts={['', a.whyLabel, '']} class="title--lg" />
+      <ul class="why">
+        {a.why.map((w, i) => (
+          <li>
+            <span class="why__n">0{i + 1}</span>
+            <span class="why__i"><AnimIcon name={whyIcons[i]} size={40} /></span>
+            <h3>{w.t}</h3>
+            <p>{w.d}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="center"><a class="btn btn--pill" href={ROUTES.tour[lang]}>{d.common.details}<Icon name="arrow" /></a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .story {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .story__text {
+    display: grid;
+    gap: 1.1rem;
+    font-size: 1.0625rem;
+  }
+  figure {
+    margin: 0.75rem 0 0;
+    overflow: hidden;
+    max-width: 30rem;
+  }
+  figure :global(img) {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+  }
+  figcaption {
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .tl {
+    list-style: none;
+    margin: 0;
+    padding: 1.5rem;
+    display: grid;
+    gap: 0;
+  }
+  .tl li {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.9rem 0 0.9rem 1.5rem;
+    position: relative;
+    border-left: 2px solid var(--primary-soft);
+  }
+  .tl li::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 1.15rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 4px #fff;
+  }
+  .tl__y {
+    font-weight: 600;
+    color: var(--primary);
+  }
+  .tl li span:last-child {
+    font-size: 0.9375rem;
+  }
+
+  .boat {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  .boat__body {
+    display: grid;
+    gap: 1rem;
+  }
+  .boat__body .chip {
+    justify-self: start;
+  }
+  .boat h2 {
+    font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  }
+  .specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 0.5rem 0;
+  }
+  .specs div {
+    padding: 0.9rem 1rem;
+  }
+  dt {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  dd {
+    margin: 0.15rem 0 0;
+    font-weight: 600;
+    color: var(--ink-strong);
+    font-size: 0.9375rem;
+  }
+  .feats {
+    display: grid;
+    gap: 0.45rem;
+  }
+  .feats li {
+    display: flex;
+    gap: 0.6rem;
+    font-size: 0.9375rem;
+  }
+  .feats :global(svg) {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+    margin-top: 0.25rem;
+    color: #198754;
+  }
+  .boat__imgs {
+    display: grid;
+    grid-template-columns: 1fr 0.8fr;
+    gap: 1rem;
+    align-items: end;
+  }
+  .boat__imgs :global(img) {
+    width: 100%;
+    border-radius: var(--radius);
+    object-fit: cover;
+    aspect-ratio: 3 / 4;
+  }
+  .boat__imgs :global(img:last-child) {
+    aspect-ratio: 1;
+    margin-bottom: 2rem;
+  }
+
+  .why {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 2.5rem 0 2.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .why li {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    padding: 1.75rem 1.5rem 0.5rem 0;
+  }
+  .why li + li {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--line);
+  }
+  .why__n {
+    position: absolute;
+    top: 1.75rem;
+    right: 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #c3cad3;
+  }
+  .why__i {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 14px;
+    background: var(--bg-soft);
+    margin-bottom: 0.4rem;
+  }
+  .why h3 {
+    font-size: 1.125rem;
+  }
+  .why p {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .center {
+    text-align: center;
+  }
+
+  @media (max-width: 960px) {
+    .story,
+    .boat,
+    .why {
+      grid-template-columns: 1fr;
+    }
+    .why li + li {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>

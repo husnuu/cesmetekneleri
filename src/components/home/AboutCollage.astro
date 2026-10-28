@@ -1,0 +1,95 @@
+---
+import { Image } from 'astro:assets';
+import Title from '../Title.astro';
+import { sections } from '../../i18n/sections';
+import { alts } from '../../i18n/alts';
+import { ROUTES, type Lang } from '../../site';
+import a1 from '../../assets/photos/cesme-tur-teknesi-seyir.jpg';
+import a2 from '../../assets/photos/poseidon-eski-tekne.jpg';
+import a3 from '../../assets/photos/ust-guverte-sezlong.jpg';
+import a4 from '../../assets/photos/esek-adasi-ziyaret.jpg';
+import a5 from '../../assets/photos/tekne-gece-ustten.jpg';
+import a6 from '../../assets/photos/akvaryum-koyu-yuzme.jpg';
+import a7 from '../../assets/photos/kis-limani-sahil.jpg';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const a = sections(lang).about;
+const imgs = [a1, a2, a3, a4, a5, a6, a7];
+---
+<section class="section ab">
+  <div class="wrap ab__wrap">
+    <div class="ab__grid">
+      {imgs.map((im, i) => (
+        <figure class={`ab__p ab__p--${i + 1}`}>
+          <Image src={im} alt={alts(lang).collage[i]} widths={[400, 800, 1200]} sizes="(max-width: 860px) 50vw, 33vw" />
+        </figure>
+      ))}
+    </div>
+    <div class="ab__card">
+      <Title parts={a.title} class="title--lg" />
+      <p>{a.text}</p>
+      <a class="btn btn--outline" href={ROUTES.about[lang]}>{a.cta}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ab__wrap {
+    position: relative;
+  }
+  .ab__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 19rem 11rem;
+    gap: 1.1rem;
+  }
+  .ab__p {
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--bg-soft);
+  }
+  .ab__p :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ab__p--1 { grid-column: 1 / 3; }
+  .ab__card {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    transform: translate(-50%, -50%);
+    width: min(36rem, calc(100% - 2 * var(--gutter)));
+    display: grid;
+    gap: 0.9rem;
+    justify-items: center;
+    text-align: center;
+    padding: 2rem 2.25rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-lg);
+  }
+  .ab__card p {
+    font-size: 1rem;
+  }
+  @media (max-width: 860px) {
+    .ab__grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 12rem 9rem 9rem;
+    }
+    .ab__p--1 { grid-column: 1 / -1; }
+    .ab__p--6, .ab__p--7 { display: none; }
+    .ab__card {
+      position: relative;
+      left: auto;
+      top: auto;
+      transform: none;
+      width: auto;
+      margin: -3rem 0.75rem 0;
+    }
+  }
+</style>

@@ -1,0 +1,172 @@
+---
+import '../styles/global.css';
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { LANGS, LOCALE, SITE, ROUTES, type Lang, type RouteKey } from '../site';
+import { t } from '../i18n';
+import { alts } from '../i18n/alts';
+import { SOCIAL } from '../i18n/sections';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import defaultOg from '../assets/photos/cesme-tekne-turu-koy.jpg';
+
+interface Props {
+  lang: Lang;
+  route: RouteKey | null;
+  title: string;
+  description: string;
+  ogImage?: ImageMetadata;
+  jsonld?: Record<string, unknown>[];
+  noindex?: boolean;
+  bookHref?: string;
+}
+
+const { lang, route, title, description, ogImage = defaultOg, jsonld = [], noindex = false, bookHref } = Astro.props;
+const d = t(lang);
+const abs = (p: string) => new URL(p, SITE.url).href;
+const canonical = route ? abs(ROUTES[route][lang]) : undefined;
+const og = await getImage({ src: ogImage, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 78 });
+
+const business = {
+  '@context': 'https://schema.org',
+  '@type': 'TravelAgency',
+  '@id': `${SITE.url}/#business`,
+  name: SITE.name,
+  alternateName: ['Çeşme Tekne Turu', 'Poseidon Çeşme'],
+  url: SITE.url + '/',
+  logo: { '@type': 'ImageObject', url: abs('/icon-512.png'), width: 512, height: 512 },
+  brand: { '@type': 'Brand', name: 'Poseidon Çeşme' },
+  image: abs(og.src),
+  telephone: SITE.phoneHref,
+  email: SITE.email,
+  foundingDate: String(SITE.founded),
+  priceRange: '₺₺',
+  currenciesAccepted: 'TRY',
+  paymentAccepted: 'Credit Card, Cash',
+  knowsLanguage: ['tr', 'en'],
+  hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(SITE.mapsQuery)}`,
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      telephone: SITE.phoneHref,
+      contactType: 'reservations',
+      availableLanguage: ['Turkish', 'English'],
+      areaServed: 'TR',
+    },
+  ],
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: SITE.address.street,
+    addressLocality: SITE.address.city,
+    addressRegion: SITE.address.region,
+    postalCode: SITE.address.postal,
+    addressCountry: SITE.address.country,
+  },
+  areaServed: ['Çeşme', 'Alaçatı', 'İzmir'],
+  geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng },
+  openingHoursSpecification: {
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    opens: SITE.hours.open,
+    closes: SITE.hours.close,
+  },
+  sameAs: Object.values(SOCIAL).concat('https://cesmetekneturu.net'),
+};
+const schemas = [business, ...jsonld];
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <meta name="robots" content="index, follow, max-image-preview:large" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    {route && (
+      <>
+        {LANGS.map((l) => <link rel="alternate" hreflang={l} href={abs(ROUTES[route][l])} />)}
+        <link rel="alternate" hreflang="x-default" href={abs(ROUTES[route].tr)} />
+      </>
+    )}
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="author" content="Poseidon Çeşme" />
+    <meta name="format-detection" content="telephone=yes" />
+    <meta name="geo.region" content="TR-35" />
+    <meta name="geo.placename" content="Çeşme, İzmir" />
+    <meta name="geo.position" content={`${SITE.geo.lat};${SITE.geo.lng}`} />
+    <meta name="ICBM" content={`${SITE.geo.lat}, ${SITE.geo.lng}`} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content={LOCALE[lang].og} />
+    {LANGS.filter((l) => l !== lang).map((l) => <meta property="og:locale:alternate" content={LOCALE[l].og} />)}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={abs(og.src)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content={title} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={abs(og.src)} />
+    <meta name="twitter:image:alt" content={title} />
+
+    {schemas.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
+  </head>
+  <body>
+    <a class="skip" href="#main">{alts(lang).skip}</a>
+    <Header lang={lang} route={route} bookHref={bookHref} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} route={route} />
+    <script>
+      // [data-car] içindeki .car__track için önceki/sonraki okları
+      document.querySelectorAll<HTMLElement>('[data-car]').forEach((root) => {
+        const track = root.querySelector<HTMLElement>('.car__track');
+        if (!track) return;
+        const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+        const next = root.querySelector<HTMLButtonElement>('[data-next]');
+        const step = () => {
+          const first = track.firstElementChild as HTMLElement | null;
+          return first ? first.getBoundingClientRect().width + 20 : track.clientWidth * 0.8;
+        };
+        const update = () => {
+          if (prev) prev.disabled = track.scrollLeft <= 4;
+          if (next) next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+        };
+        prev?.addEventListener('click', () => track.scrollBy({ left: -step() }));
+        next?.addEventListener('click', () => track.scrollBy({ left: step() }));
+        track.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        update();
+      });
+
+      // Bölümler ekrana girerken yumuşakça belirsin (JS yoksa içerik zaten görünür)
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+        const els = document.querySelectorAll<HTMLElement>('main > section:not(:first-child), main > div > section, [data-reveal]');
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('is-in');
+              io.unobserve(e.target);
+            }
+          });
+        }, { rootMargin: '0px 0px -8% 0px' });
+        els.forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight) return;
+          el.classList.add('reveal');
+          io.observe(el);
+        });
+      }
+    </script>
+  </body>
+</html>

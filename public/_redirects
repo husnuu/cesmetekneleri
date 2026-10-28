@@ -1,0 +1,18 @@
+# Netlify / Cloudflare Pages
+/index.html              /                  301
+/home                    /                  301
+/anasayfa                /                  301
+/tr                      /                  301
+/tr/*                    /:splat            301
+/fr/home                 /fr                301
+/rezervasyon             /cesme-tekne-turu  301
+/tekne-turu              /cesme-tekne-turu  301
+/cesme-tekne-turlari     /turlar            301
+/sss                     /sik-sorulan-sorular 301
+/faq                     /sik-sorulan-sorular 301
+/gun-batimi-turu         /cesme-gun-batimi-turu 301
+/dalis-turu              /cesme-tuplu-dalis-turu 301
+/about                   /hakkimizda        301
+/hakkinda                /hakkimizda        301
+/contact                 /iletisim          301
+/iletisim-bilgileri      /iletisim          301

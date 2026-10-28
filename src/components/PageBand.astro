@@ -1,0 +1,120 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  image: ImageMetadata;
+  eyebrow: string;
+  title: string;
+  lead?: string;
+  crumbs: { label: string; href?: string }[];
+}
+const { image, eyebrow, title, lead, crumbs } = Astro.props;
+---
+<section class="band">
+  <Image src={image} alt={title} widths={[800, 1400, 2000]} sizes="100vw" loading="eager" class="band__img" />
+  <div class="wrap band__inner">
+    <nav class="band__crumbs" aria-label="breadcrumb">
+      {crumbs.map((c, i) => (
+        <>
+          {i > 0 && <span aria-hidden="true">›</span>}
+          {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+        </>
+      ))}
+    </nav>
+    <p class="band__eyebrow">{eyebrow}</p>
+    <h1>{title}</h1>
+    {lead && <p class="band__lead">{lead}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .band {
+    position: relative;
+    overflow: hidden;
+    margin: 0 clamp(0.5rem, 1.2vw, 1rem);
+    border-radius: 0 0 32px 32px;
+    background: radial-gradient(120% 140% at 0% 0%, #12345f 0%, var(--navy) 55%, #071528 100%);
+    color: #fff;
+  }
+  .band :global(.band__img) {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 68%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.75;
+    mask-image: linear-gradient(to right, transparent, #000 50%);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 50%);
+  }
+  .band::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  }
+  .band__inner {
+    position: relative;
+    z-index: 1;
+    padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(4rem, 8vw, 6rem);
+  }
+  .band__crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 1.75rem;
+  }
+  .band__crumbs a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+  }
+  .band__crumbs a:hover {
+    color: #fff;
+  }
+  .band__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #e6c98f;
+  }
+  .band__eyebrow::before {
+    content: '';
+    width: 1.5rem;
+    height: 2px;
+    background: currentColor;
+  }
+  h1 {
+    margin-top: 0.75rem;
+    color: #fff;
+    font-size: clamp(2rem, 4.2vw, 3.1rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    max-width: 18ch;
+  }
+  .band__lead {
+    margin-top: 1rem;
+    max-width: 38rem;
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  @media (max-width: 760px) {
+    .band {
+      margin: 0;
+      border-radius: 0 0 26px 26px;
+    }
+    .band :global(.band__img) {
+      width: 100%;
+      opacity: 0.3;
+      mask-image: linear-gradient(to bottom, transparent, #000 60%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 60%);
+    }
+  }
+</style>

@@ -1,0 +1,18 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/:path*", "has": [{ "type": "host", "value": "www.cesmetekneleri.com" }], "destination": "https://cesmetekneleri.com/:path*", "permanent": true },
+    { "source": "/index", "destination": "/", "permanent": true },
+    { "source": "/(home|anasayfa|tr)", "destination": "/", "permanent": true },
+    { "source": "/tr/:path*", "destination": "/:path*", "permanent": true },
+    { "source": "/fr/home", "destination": "/fr", "permanent": true },
+    { "source": "/(rezervasyon|tekne-turu)", "destination": "/cesme-tekne-turu", "permanent": true },
+    { "source": "/(cesme-tekne-turlari|tours)", "destination": "/turlar", "permanent": true },
+    { "source": "/(sss|faq|sikca-sorulan-sorular)", "destination": "/sik-sorulan-sorular", "permanent": true },
+    { "source": "/(gun-batimi-turu|gunbatimi-turu)", "destination": "/cesme-gun-batimi-turu", "permanent": true },
+    { "source": "/(dalis-turu|tuplu-dalis)", "destination": "/cesme-tuplu-dalis-turu", "permanent": true },
+    { "source": "/(about|hakkinda)", "destination": "/hakkimizda", "permanent": true },
+    { "source": "/(contact|iletisim-bilgileri)", "destination": "/iletisim", "permanent": true }
+  ]
+}

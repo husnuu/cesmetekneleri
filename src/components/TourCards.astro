@@ -1,0 +1,210 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from './Icon.astro';
+import { LOCALE, fmtPrice, type Lang } from '../site';
+import { TOURS, tourSiteUrl, type TourKey } from '../data/tours';
+import { t } from '../i18n';
+
+interface Props { lang: Lang; exclude?: TourKey; headingLevel?: 'h2' | 'h3' }
+const { lang, exclude, headingLevel = 'h3' } = Astro.props;
+const u = t(lang).ui;
+const H = headingLevel;
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/photos/*.jpg', { eager: true });
+const img = (n: string) => photos[`../assets/photos/${n}.jpg`].default;
+const list = TOURS.filter((tr) => tr.key !== exclude);
+const loc = LOCALE[lang].intl;
+---
+<ul class:list={['tc', `tc--${list.length}`]}>
+  {list.map((tr) => {
+    const x = tr[lang];
+    const price = tr.discount ? Math.round(tr.from * (1 - tr.discount / 100)) : tr.from;
+    return (
+      <li class="tc__card">
+        <div class="tc__media">
+          <Image src={img(tr.image)} alt={x.title} widths={[420, 640, 900]} sizes="(max-width: 640px) 88vw, (max-width: 1100px) 46vw, 290px" />
+          {x.badge && <span class="tc__badge">{x.badge}</span>}
+          <span class="tc__rating"><Icon name="star" />{tr.rating.toLocaleString(loc)}</span>
+        </div>
+        <div class="tc__body">
+          <p class="tc__meta">{x.duration}<span aria-hidden="true">·</span>{tr.start}–{tr.end}</p>
+          <H class="tc__title"><a href={tourSiteUrl(tr, lang)}>{x.title}</a></H>
+          <div class="tc__foot">
+            <p class="tc__price">
+              <b>{fmtPrice(price, lang)}</b>
+              {tr.discount ? <s>{fmtPrice(tr.from, lang)}</s> : <span>{u.perPersonShort}</span>}
+            </p>
+            <span class="tc__go" aria-hidden="true"><Icon name="arrow" /></span>
+          </div>
+        </div>
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  .tc {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem 1.5rem;
+  }
+  .tc--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .tc__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .tc__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+    background: var(--bg-soft);
+    isolation: isolate;
+  }
+  .tc__media :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 4.6;
+    object-fit: cover;
+    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .tc__card:hover .tc__media :global(img) {
+    transform: scale(1.05);
+  }
+  .tc__badge {
+    position: absolute;
+    left: 0.85rem;
+    top: 0.85rem;
+    padding: 0.32rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink-strong);
+  }
+  .tc__rating {
+    position: absolute;
+    right: 0.85rem;
+    bottom: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(11, 31, 58, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .tc__rating :global(svg) {
+    width: 0.8rem;
+    height: 0.8rem;
+    color: #ffc95c;
+    fill: #ffc95c;
+  }
+  .tc__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.35rem;
+    padding: 1rem 0.15rem 0;
+  }
+  .tc__meta {
+    display: flex;
+    gap: 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .tc__title {
+    font-size: 1.0625rem;
+    font-weight: 750;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+  }
+  .tc__title a {
+    text-decoration: none;
+  }
+  /* tüm kart tıklanabilir */
+  .tc__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .tc__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 0.6rem;
+  }
+  .tc__price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+  }
+  .tc__price b {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    color: var(--ink-strong);
+  }
+  .tc__price s,
+  .tc__price span {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+  .tc__go {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    color: var(--ink-strong);
+    transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.25s;
+  }
+  .tc__go :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .tc__card:hover .tc__go {
+    background: var(--ink-strong);
+    border-color: var(--ink-strong);
+    color: #fff;
+    transform: rotate(-45deg);
+  }
+  .tc__card:hover .tc__title a {
+    color: var(--primary);
+  }
+  @media (max-width: 1100px) {
+    .tc,
+    .tc--3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .tc,
+    .tc--3 {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter);
+      scrollbar-width: none;
+      margin-inline: calc(var(--gutter) * -1);
+      padding: 0 var(--gutter) 0.5rem;
+    }
+    .tc::-webkit-scrollbar {
+      display: none;
+    }
+    .tc__card {
+      flex: none;
+      width: 78%;
+      scroll-snap-align: start;
+    }
+  }
+</style>

@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import { ROUTES } from '../site';
+import { t } from '../i18n';
+const d = t('tr');
+const f = t('fr');
+---
+<Base lang="tr" route={null} title={`${d.notFound.title} | Çeşme Tekneleri`} description={`${d.notFound.text} Çeşme tekne turları, gün batımı ve dalış turları için ana sayfaya dönün.`} noindex>
+  <section class="wrap nf">
+    <span class="chip">404</span>
+    <h1>{d.notFound.title}</h1>
+    <p class="sub">{d.notFound.text}</p>
+    <div class="nf__links">
+      <a class="btn" href={ROUTES.home.tr}>{d.notFound.back}</a>
+      <a class="btn btn--outline" href={ROUTES.home.fr} lang="fr">{f.notFound.back}</a>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf {
+    padding-block: clamp(5rem, 14vw, 10rem);
+    display: grid;
+    gap: 1.5rem;
+    justify-items: start;
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+  .nf__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+</style>

@@ -1,0 +1,7 @@
+---
+// [önce, kalın, sonra] parçalarından "normal + kalın" karışık başlık üretir.
+interface Props { parts: string[]; as?: 'h1' | 'h2' | 'h3'; center?: boolean; class?: string }
+const { parts, as: Tag = 'h2', center = false, class: cls } = Astro.props;
+const [a = '', b = '', c = ''] = parts;
+---
+<Tag class:list={['title', { 'title--center': center }, cls]}>{a}<b>{b}</b>{c}</Tag>

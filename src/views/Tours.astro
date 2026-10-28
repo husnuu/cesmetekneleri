@@ -1,0 +1,146 @@
+---
+import Base from '../layouts/Base.astro';
+import PageBand from '../components/PageBand.astro';
+import BookingWidget from '../components/BookingWidget.astro';
+import TourCards from '../components/TourCards.astro';
+import Title from '../components/Title.astro';
+import Icon from '../components/Icon.astro';
+import { ROUTES, SITE, fmtPrice, type Lang } from '../site';
+import { TOURS, bookingUrl, tourSiteUrl } from '../data/tours';
+import { sections } from '../i18n/sections';
+import { t } from '../i18n';
+import bandImg from '../assets/photos/koy-adalar-genis.jpg';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const p = sections(lang).toursPage;
+const url = (r: string) => new URL(r, SITE.url).href;
+const inc = { tour: p.incLunch, tourIzmir: p.incTransfer, tourSunset: p.incDinner, tourDive: p.incDive };
+
+const jsonld = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: p.h1,
+    itemListElement: TOURS.map((tr, i) => ({ '@type': 'ListItem', position: i + 1, url: url(ROUTES[tr.key][lang]), name: tr[lang].title })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: d.breadcrumbHome, item: url(ROUTES.home[lang]) },
+      { '@type': 'ListItem', position: 2, name: p.eyebrow, item: url(ROUTES.tours[lang]) },
+    ],
+  },
+];
+---
+<Base lang={lang} route="tours" title={p.title} description={p.desc} ogImage={bandImg} jsonld={jsonld}>
+  <PageBand image={bandImg} eyebrow={p.eyebrow} title={p.h1} lead={p.lead} crumbs={[{ label: d.breadcrumbHome, href: ROUTES.home[lang] }, { label: p.eyebrow }]} />
+
+  <div class="wrap widget">
+    <BookingWidget lang={lang} />
+  </div>
+
+  <section class="section list">
+    <div class="wrap">
+      <TourCards lang={lang} headingLevel="h2" />
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="wrap">
+      <Title parts={p.compare} center class="title--lg" />
+      <div class="cmp">
+        <table>
+          <thead>
+            <tr>{p.cols.map((c) => <th scope="col">{c}</th>)}<th></th></tr>
+          </thead>
+          <tbody>
+            {TOURS.map((tr) => (
+              <tr>
+                <th scope="row"><a href={tourSiteUrl(tr, lang)}>{tr[lang].title}</a></th>
+                <td>{tr[lang].duration}</td>
+                <td class="num">{tr.start}–{tr.end}</td>
+                <td>{inc[tr.key]}</td>
+                <td class="price">{fmtPrice(tr.from, lang)}</td>
+                <td><a class="btn" href={bookingUrl(tr, lang)}>{d.ui.book}<Icon name="arrow" /></a></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .widget {
+    position: relative;
+    z-index: 3;
+    margin-top: -2.5rem;
+    max-width: calc(1060px + var(--gutter) * 2);
+  }
+  .list {
+    padding-top: 3.5rem;
+  }
+  .cmp {
+    margin-top: 2.5rem;
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    background: #fff;
+    box-shadow: var(--shadow);
+  }
+  table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  th,
+  td {
+    padding: 1.1rem 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  thead th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--bg-soft);
+  }
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  tbody th a {
+    font-weight: 700;
+    color: var(--ink-strong);
+    text-decoration: none;
+  }
+  tbody th a:hover {
+    color: var(--primary);
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .price {
+    font-weight: 800;
+    color: var(--ink-strong);
+    white-space: nowrap;
+  }
+  td .btn {
+    min-height: 2.5rem;
+    padding: 0.55rem 1rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+  }
+  @media (max-width: 760px) {
+    .widget {
+      margin-top: -1.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,994 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from './Icon.astro';
+import { LOCALE, fmtPrice, type Lang } from '../site';
+import { TOURS, bookingUrl, type TourKey } from '../data/tours';
+import { t } from '../i18n';
+
+interface Props { lang: Lang; tour?: TourKey; compact?: boolean }
+const { lang, tour: preset = 'tour', compact = false } = Astro.props;
+const d = t(lang);
+const u = d.ui;
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/photos/*.jpg', { eager: true });
+const thumbs = await Promise.all(
+  TOURS.map((tr) => getImage({ src: photos[`../assets/photos/${tr.image}.jpg`].default, width: 120, height: 120, fit: 'cover', format: 'webp' })),
+);
+const options = TOURS.map((tr, i) => ({
+  key: tr.key,
+  title: tr[lang].title,
+  meta: `${tr[lang].duration} · ${tr.start}–${tr.end}`,
+  price: fmtPrice(tr.from, lang),
+  url: bookingUrl(tr, lang),
+  thumb: thumbs[i].src,
+}));
+const current = options.find((o) => o.key === preset) ?? options[0];
+const today = new Date().toISOString().slice(0, 10);
+const L = {
+  months: LOCALE[lang].intl,
+  today: u.today,
+  tomorrow: u.tomorrow,
+  weekend: u.weekend,
+  adults: u.adults,
+  children: u.children,
+  infants: u.infants,
+  pickDate: u.datePh,
+};
+---
+<form class:list={['bw', { 'bw--compact': compact }]} data-bw data-l={JSON.stringify(L)} data-min={today} novalidate>
+  <div class="bw__bar">
+    {!compact && (
+      <div class="mw mw--tours">
+        <p class="mw__h">{d.nav.chooseTour}</p>
+        <div class="mw__chips">
+          {options.map((o) => (
+            <button type="button" class="mchip" aria-pressed={o.key === current.key ? 'true' : 'false'} data-chip={o.key}>
+              <img src={o.thumb} alt="" width="56" height="56" loading="lazy" />
+              <span><b>{o.title}</b><small>{o.price}</small></span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+    <!-- Tur -->
+    <div class="seg seg--tour" data-pop-root>
+      <button type="button" class="seg__btn" aria-haspopup="listbox" aria-expanded="false" data-pop-trigger>
+        <span class="seg__ic"><Icon name="anchor" /></span>
+        <span class="seg__txt"><span class="seg__l">{u.tour}</span><span class="seg__v" data-tour-label>{current.title}</span></span>
+        <Icon name="chevron" class="seg__chev" />
+      </button>
+      <div class="pop pop--tours" role="listbox" hidden data-pop>
+        {options.map((o) => (
+          <button type="button" role="option" class="opt" aria-selected={o.key === current.key ? 'true' : 'false'} data-tour={o.key} data-url={o.url} data-title={o.title} data-price={o.price}>
+            <img src={o.thumb} alt="" width="56" height="56" loading="lazy" />
+            <span class="opt__txt"><b>{o.title}</b><small>{o.meta}</small></span>
+            <span class="opt__price">{o.price}</span>
+          </button>
+        ))}
+      </div>
+      <input type="hidden" name="tour" value={current.key} />
+    </div>
+
+    <!-- Tarih -->
+    <div class="seg seg--date" data-pop-root>
+      <button type="button" class="seg__btn" aria-haspopup="dialog" aria-expanded="false" data-pop-trigger>
+        <span class="seg__ic"><Icon name="calendar" /></span>
+        <span class="seg__txt"><span class="seg__l">{u.date}</span><span class="seg__v is-ph" data-date-label>{u.datePh}</span></span>
+      </button>
+      <div class="pop pop--cal" role="dialog" aria-label={u.date} hidden data-pop>
+        <div class="cal__quick">
+          <button type="button" data-quick="0">{u.today}</button>
+          <button type="button" data-quick="1">{u.tomorrow}</button>
+          <button type="button" data-quick="weekend">{u.weekend}</button>
+        </div>
+        <div class="cal__head">
+          <button type="button" class="cal__nav" data-cal-prev aria-label="‹"><Icon name="arrow-left" /></button>
+          <button type="button" class="cal__nav" data-cal-next aria-label="›"><Icon name="arrow" /></button>
+        </div>
+        <div class="cal__months" data-cal-months></div>
+      </div>
+      <input type="hidden" name="date" />
+    </div>
+
+    {!compact && (
+      <div class="mw mw--days">
+        <p class="mw__h">{u.date}</p>
+        <div class="mw__days" data-days>
+          <button type="button" class="mday mday--more" data-more-dates><Icon name="calendar" /><small>{d.nav.calendar}</small></button>
+        </div>
+      </div>
+    )}
+    <!-- Misafir -->
+    <div class="seg seg--guests" data-pop-root>
+      <button type="button" class="seg__btn" aria-haspopup="dialog" aria-expanded="false" data-pop-trigger>
+        <span class="seg__ic"><Icon name="users" /></span>
+        <span class="seg__txt"><span class="seg__l">{u.guests}</span><span class="seg__v" data-guest-label>2 {u.adults}</span></span>
+      </button>
+      <div class="pop pop--guests" role="dialog" aria-label={u.guests} hidden data-pop>
+        {[
+          { k: 'adults', label: u.adults, hint: u.adultsHint, v: 2, min: 1 },
+          { k: 'children', label: u.children, hint: u.childrenHint, v: 0, min: 0 },
+          { k: 'infants', label: u.infants, hint: u.infantsHint, v: 0, min: 0 },
+        ].map((g) => (
+          <div class="step">
+            <span class="step__txt"><b>{g.label}</b><small>{g.hint}</small></span>
+            <span class="step__ctl">
+              <button type="button" data-step={g.k} data-d="-1" aria-label={`${g.label} −`}><Icon name="minus" /></button>
+              <output data-count={g.k}>{g.v}</output>
+              <button type="button" data-step={g.k} data-d="1" aria-label={`${g.label} +`}><Icon name="plus" /></button>
+            </span>
+            <input type="hidden" name={g.k} value={g.v} data-min={g.min} />
+          </div>
+        ))}
+        <button type="button" class="btn btn--pill step__done" data-pop-close>{u.done}</button>
+      </div>
+    </div>
+
+    <button class="btn bw__go" type="submit">
+      <span>{u.book}</span>{!compact && <span class="bw__go-price" data-cta-price>{current.price}</span>}<Icon name="arrow" />
+    </button>
+  </div>
+
+  {!compact && (
+    <ul class="bw__trust">
+      <li><Icon name="shield" />{u.trust1}</li>
+      <li><Icon name="calendar" />{u.trust2}</li>
+      <li><Icon name="star" />{u.trust3}</li>
+      <li class="bw__from">{u.fromLabel} <b data-price-label>{current.price}</b></li>
+    </ul>
+  )}
+</form>
+
+<script>
+  type Labels = { months: string; adults: string; children: string; infants: string; pickDate: string };
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const parse = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+
+  document.querySelectorAll<HTMLFormElement>('form[data-bw]').forEach((form) => {
+    const L: Labels = JSON.parse(form.dataset.l!);
+    const minDate = parse(form.dataset.min!);
+    const roots = [...form.querySelectorAll<HTMLElement>('[data-pop-root]')];
+
+    // ---- popover aç/kapa
+    const close = (root?: HTMLElement) => {
+      roots.forEach((r) => {
+        if (root && r !== root) return;
+        r.querySelector<HTMLElement>('[data-pop]')!.hidden = true;
+        r.querySelector('[data-pop-trigger]')!.setAttribute('aria-expanded', 'false');
+        r.classList.remove('is-open');
+      });
+    };
+    roots.forEach((root) => {
+      const trig = root.querySelector<HTMLButtonElement>('[data-pop-trigger]')!;
+      const pop = root.querySelector<HTMLElement>('[data-pop]')!;
+      trig.addEventListener('click', () => {
+        const open = pop.hidden;
+        close();
+        if (open) {
+          pop.hidden = false;
+          trig.setAttribute('aria-expanded', 'true');
+          root.classList.add('is-open');
+          if (root.classList.contains('seg--date')) renderCal();
+        }
+      });
+    });
+    document.addEventListener('click', (e) => { if (!form.contains(e.target as Node)) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    form.querySelectorAll('[data-pop-close]').forEach((b) => b.addEventListener('click', () => close()));
+
+    // ---- tur seçimi
+    const tourInput = form.querySelector<HTMLInputElement>('input[name="tour"]')!;
+    let tourUrl = form.querySelector<HTMLElement>('.opt[aria-selected="true"]')!.dataset.url!;
+    const selectTour = (key: string) => {
+      const opt = form.querySelector<HTMLElement>(`.opt[data-tour="${key}"]`)!;
+      form.querySelectorAll('.opt').forEach((o) => o.setAttribute('aria-selected', String(o === opt)));
+      form.querySelectorAll<HTMLElement>('.mchip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.chip === key)));
+      tourInput.value = key;
+      tourUrl = opt.dataset.url!;
+      form.querySelector('[data-tour-label]')!.textContent = opt.dataset.title!;
+      form.querySelectorAll('[data-price-label], [data-cta-price]').forEach((el) => (el.textContent = opt.dataset.price!));
+    };
+    form.querySelectorAll<HTMLButtonElement>('.opt').forEach((opt) => {
+      opt.addEventListener('click', () => { selectTour(opt.dataset.tour!); close(); });
+    });
+    form.querySelectorAll<HTMLButtonElement>('.mchip').forEach((c) => {
+      c.addEventListener('click', () => {
+        selectTour(c.dataset.chip!);
+        c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      });
+    });
+
+    // ---- takvim
+    const dateInput = form.querySelector<HTMLInputElement>('input[name="date"]')!;
+    const dateLabel = form.querySelector<HTMLElement>('[data-date-label]')!;
+    const monthsEl = form.querySelector<HTMLElement>('[data-cal-months]')!;
+    let view = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    const fmtMonth = new Intl.DateTimeFormat(L.months, { month: 'long', year: 'numeric' });
+    const fmtDay = new Intl.DateTimeFormat(L.months, { weekday: 'short', day: 'numeric', month: 'short' });
+    const weekdays = [...Array(7)].map((_, i) => new Intl.DateTimeFormat(L.months, { weekday: 'narrow' }).format(new Date(2024, 0, 1 + i)));
+    const twoMonths = () => window.matchMedia('(min-width: 760px)').matches;
+
+    const strip = form.querySelector<HTMLElement>('[data-days]');
+    const more = form.querySelector<HTMLElement>('[data-more-dates]');
+    const syncStrip = () => {
+      if (!strip) return;
+      let inStrip = false;
+      strip.querySelectorAll<HTMLElement>('[data-sday]').forEach((b) => {
+        const on = b.dataset.sday === dateInput.value;
+        b.classList.toggle('is-sel', on);
+        inStrip ||= on;
+      });
+      more!.classList.toggle('is-sel', !!dateInput.value && !inStrip);
+      more!.querySelector('small')!.textContent = !!dateInput.value && !inStrip ? fmtShort.format(parse(dateInput.value)) : more!.dataset.label!;
+    };
+    const fmtShort = new Intl.DateTimeFormat(L.months, { day: 'numeric', month: 'short' });
+    const setDate = (d: Date) => {
+      dateInput.value = iso(d);
+      dateLabel.textContent = fmtDay.format(d);
+      dateLabel.classList.remove('is-ph');
+      syncStrip();
+      close();
+    };
+    if (strip && more) {
+      more.dataset.label = more.querySelector('small')!.textContent!;
+      const wd = new Intl.DateTimeFormat(L.months, { weekday: 'short' });
+      const mo = new Intl.DateTimeFormat(L.months, { month: 'short' });
+      for (let i = 0; i < 14; i++) {
+        const day = new Date(minDate);
+        day.setDate(day.getDate() + i);
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'mday' + (day.getDay() % 6 === 0 ? ' is-we' : '');
+        b.dataset.sday = iso(day);
+        b.innerHTML = `<small>${wd.format(day)}</small><b>${day.getDate()}</b><small>${mo.format(day)}</small>`;
+        b.addEventListener('click', () => setDate(day));
+        strip.insertBefore(b, more);
+      }
+      requestAnimationFrame(() => (strip.scrollLeft = 0));
+      more.addEventListener('click', () => form.querySelector<HTMLButtonElement>('.seg--date [data-pop-trigger]')!.click());
+    }
+    function renderCal() {
+      const count = twoMonths() ? 2 : 1;
+      monthsEl.innerHTML = '';
+      for (let m = 0; m < count; m++) {
+        const first = new Date(view.getFullYear(), view.getMonth() + m, 1);
+        const wrap = document.createElement('div');
+        wrap.className = 'cal__month';
+        const days = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+        const offset = (first.getDay() + 6) % 7;
+        let html = `<p class="cal__title">${fmtMonth.format(first)}</p><div class="cal__grid">`;
+        html += weekdays.map((w) => `<span class="cal__wd">${w}</span>`).join('');
+        html += '<span></span>'.repeat(offset);
+        for (let d = 1; d <= days; d++) {
+          const date = new Date(first.getFullYear(), first.getMonth(), d);
+          const key = iso(date);
+          const past = date < minDate;
+          const cls = ['cal__d', key === iso(minDate) ? 'is-today' : '', key === dateInput.value ? 'is-sel' : '', date.getDay() % 6 === 0 ? 'is-we' : ''].join(' ');
+          html += `<button type="button" class="${cls}" data-day="${key}" ${past ? 'disabled' : ''}>${d}</button>`;
+        }
+        wrap.innerHTML = html + '</div>';
+        monthsEl.appendChild(wrap);
+      }
+      const prev = form.querySelector<HTMLButtonElement>('[data-cal-prev]')!;
+      prev.disabled = view <= new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    }
+    monthsEl.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-day]');
+      if (b && !b.disabled) setDate(parse(b.dataset.day!));
+    });
+    form.querySelector('[data-cal-prev]')!.addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); });
+    form.querySelector('[data-cal-next]')!.addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); });
+    form.querySelectorAll<HTMLButtonElement>('[data-quick]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const d = new Date(minDate);
+        if (b.dataset.quick === 'weekend') d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7));
+        else d.setDate(d.getDate() + Number(b.dataset.quick));
+        setDate(d);
+      });
+    });
+
+    // ---- misafir
+    const guestLabel = form.querySelector<HTMLElement>('[data-guest-label]')!;
+    const val = (k: string) => Number(form.querySelector<HTMLInputElement>(`input[name="${k}"]`)!.value);
+    const syncGuests = () => {
+      const parts = [`${val('adults')} ${L.adults}`];
+      if (val('children')) parts.push(`${val('children')} ${L.children}`);
+      if (val('infants')) parts.push(`${val('infants')} ${L.infants}`);
+      guestLabel.textContent = parts.join(', ');
+      form.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => {
+        const inp = form.querySelector<HTMLInputElement>(`input[name="${b.dataset.step}"]`)!;
+        b.disabled = b.dataset.d === '-1' ? Number(inp.value) <= Number(inp.dataset.min) : Number(inp.value) >= 30;
+      });
+    };
+    form.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const inp = form.querySelector<HTMLInputElement>(`input[name="${b.dataset.step}"]`)!;
+        inp.value = String(Math.max(Number(inp.dataset.min), Math.min(30, Number(inp.value) + Number(b.dataset.d))));
+        form.querySelector(`[data-count="${b.dataset.step}"]`)!.textContent = inp.value;
+        syncGuests();
+      });
+    });
+    syncGuests();
+
+    // ---- gönder: cesmetekneturu.net rezervasyon sayfası
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!dateInput.value) {
+        const dateRoot = form.querySelector<HTMLElement>('.seg--date')!;
+        dateRoot.classList.add('is-missing');
+        setTimeout(() => dateRoot.classList.remove('is-missing'), 900);
+        dateRoot.querySelector<HTMLButtonElement>('[data-pop-trigger]')!.click();
+        return;
+      }
+      const q = new URLSearchParams({ date: dateInput.value, adults: String(val('adults')), children: String(val('children')), infants: String(val('infants')) });
+      window.location.href = `${tourUrl}?${q}`;
+    });
+  });
+</script>
+
+<style>
+  .bw {
+    position: relative;
+  }
+  .bw__bar {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr auto;
+    align-items: stretch;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 24px;
+    box-shadow: var(--shadow-lg);
+  }
+  .seg {
+    position: relative;
+    min-width: 0;
+  }
+  .seg + .seg::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 22%;
+    bottom: 22%;
+    border-left: 1px solid var(--line);
+  }
+  .seg__btn {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: 100%;
+    height: 100%;
+    min-height: 4.25rem;
+    padding: 0.6rem 1rem;
+    border: 0;
+    border-radius: 18px;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .seg__btn:hover,
+  .seg.is-open .seg__btn {
+    background: var(--bg-soft);
+  }
+  .seg__ic {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+  .seg__ic :global(svg) {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  .seg__txt {
+    display: grid;
+    min-width: 0;
+  }
+  .seg__l {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .seg__v {
+    font-weight: 700;
+    color: var(--ink-strong);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .seg__v.is-ph {
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .seg :global(.seg__chev) {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-left: auto;
+    flex: none;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .seg.is-open :global(.seg__chev) {
+    transform: rotate(180deg);
+  }
+  .seg.is-missing .seg__btn {
+    animation: shake 0.45s;
+    background: #fdecec;
+  }
+  @keyframes shake {
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .bw__go {
+    min-height: 4.25rem;
+    padding-inline: 1.9rem;
+    border-radius: 18px;
+    font-size: 1.0625rem;
+    margin-left: 0.4rem;
+  }
+  .bw__go :global(svg) {
+    transition: transform 0.2s;
+  }
+  .bw__go:hover :global(svg) {
+    transform: translateX(3px);
+  }
+
+  /* popover */
+  .pop {
+    position: absolute;
+    top: calc(100% + 0.9rem);
+    left: 0;
+    z-index: 30;
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(16, 24, 40, 0.05);
+    padding: 0.75rem;
+    animation: pop-in 0.18s ease-out;
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(-6px); }
+  }
+  .pop--tours {
+    width: min(30rem, 90vw);
+    display: grid;
+    gap: 0.25rem;
+  }
+  .opt {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.55rem;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+  }
+  .opt:hover,
+  .opt[aria-selected='true'] {
+    background: var(--bg-soft);
+  }
+  .opt[aria-selected='true'] {
+    box-shadow: inset 0 0 0 1.5px var(--primary);
+  }
+  .opt img {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 12px;
+    object-fit: cover;
+  }
+  .opt__txt {
+    display: grid;
+    line-height: 1.35;
+  }
+  .opt__txt b {
+    color: var(--ink-strong);
+    font-size: 0.9375rem;
+  }
+  .opt__txt small {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+  .opt__price {
+    font-weight: 800;
+    color: var(--primary);
+    white-space: nowrap;
+    font-size: 0.9375rem;
+  }
+
+  .pop--cal {
+    width: max-content;
+    padding: 1.1rem 1.25rem 1.25rem;
+  }
+  .cal__quick {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .cal__quick button {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    font: 600 0.8125rem var(--font);
+    color: var(--ink-strong);
+    cursor: pointer;
+  }
+  .cal__quick button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .cal__head {
+    position: relative;
+    height: 0;
+  }
+  .cal__nav {
+    position: absolute;
+    top: 0.1rem;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: 50%;
+    background: var(--bg-soft);
+    color: var(--ink-strong);
+    cursor: pointer;
+    z-index: 1;
+  }
+  .cal__nav:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .cal__nav[data-cal-prev] {
+    left: 0;
+  }
+  .cal__nav[data-cal-next] {
+    right: 0;
+  }
+  .cal__nav :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .cal__months {
+    display: flex;
+    gap: 2rem;
+  }
+  .cal__months :global(.cal__title) {
+    text-align: center;
+    font-weight: 800;
+    color: var(--ink-strong);
+    line-height: 2.4rem;
+    margin-bottom: 0.4rem;
+    text-transform: capitalize;
+  }
+  .cal__months :global(.cal__grid) {
+    display: grid;
+    grid-template-columns: repeat(7, 2.6rem);
+    gap: 0.2rem;
+  }
+  .cal__months :global(.cal__wd) {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--muted);
+    padding-bottom: 0.3rem;
+  }
+  .cal__months :global(.cal__d) {
+    height: 2.6rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    font: 600 0.875rem var(--font);
+    color: var(--ink-strong);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .cal__months :global(.cal__d.is-we) {
+    color: var(--primary-dark);
+  }
+  .cal__months :global(.cal__d:hover:not(:disabled)) {
+    background: var(--primary-soft);
+  }
+  .cal__months :global(.cal__d.is-today) {
+    box-shadow: inset 0 0 0 1.5px var(--line);
+  }
+  .cal__months :global(.cal__d.is-sel) {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 6px 14px -6px rgba(20, 99, 216, 0.8);
+  }
+  .cal__months :global(.cal__d:disabled) {
+    color: #c3c9d0;
+    text-decoration: line-through;
+    cursor: default;
+  }
+
+  .pop--guests {
+    right: 0;
+    left: auto;
+    width: 21rem;
+    padding: 0.5rem 1.25rem 1.1rem;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .step__txt {
+    display: grid;
+    line-height: 1.3;
+  }
+  .step__txt b {
+    color: var(--ink-strong);
+  }
+  .step__txt small {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+  .step__ctl {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .step__ctl button {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: #fff;
+    color: var(--ink-strong);
+    cursor: pointer;
+  }
+  .step__ctl button:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .step__ctl button:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .step__ctl :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .step__ctl output {
+    min-width: 1.4rem;
+    text-align: center;
+    font-weight: 800;
+    color: var(--ink-strong);
+  }
+  .step__done {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .bw__trust {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.4rem;
+    margin-top: 1rem;
+    padding-inline: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .bw__trust li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .bw__trust :global(svg) {
+    width: 1rem;
+    height: 1rem;
+    color: var(--ok);
+  }
+  .bw__from {
+    margin-left: auto;
+    color: var(--ink);
+  }
+  .bw__from b {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--ink-strong);
+  }
+
+  /* mobil: tur kartları + gün şeridi (masaüstünde gizli) */
+  .mw,
+  .bw__go-price {
+    display: none;
+  }
+  .mw__h {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.7rem;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    color: var(--ink-strong);
+  }
+  .mw__h::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .mw__chips,
+  .mw__days {
+    display: flex;
+    gap: 0.55rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    scrollbar-width: none;
+    margin: 0 -1rem;
+    padding: 0.15rem 1rem 0.35rem;
+  }
+  .mw__chips::-webkit-scrollbar,
+  .mw__days::-webkit-scrollbar {
+    display: none;
+  }
+  .mchip {
+    flex: none;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 15.5rem;
+    padding: 0.45rem 0.8rem 0.45rem 0.45rem;
+    border: 1.5px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .mchip img {
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 13px;
+    object-fit: cover;
+  }
+  .mchip span {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .mchip b {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--ink-strong);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .mchip small {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  .mchip[aria-pressed='true'] {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    box-shadow: 0 6px 16px -10px rgba(20, 99, 216, 0.8);
+  }
+  .mw__days :global(.mday) {
+    flex: none;
+    scroll-snap-align: start;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.05rem;
+    width: 3.6rem;
+    height: 4.6rem;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    font: inherit;
+    color: var(--ink-strong);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mw__days :global(.mday small) {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: capitalize;
+  }
+  .mw__days :global(.mday b) {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .mw__days :global(.mday.is-we b) {
+    color: var(--primary-dark);
+  }
+  .mw__days :global(.mday.is-sel) {
+    border-color: var(--primary);
+    background: var(--primary);
+    box-shadow: 0 8px 18px -8px rgba(20, 99, 216, 0.8);
+  }
+  .mw__days :global(.mday.is-sel b),
+  .mw__days :global(.mday.is-sel small) {
+    color: #fff;
+  }
+  .mw__days :global(.mday--more) {
+    width: 4.6rem;
+    border-style: dashed;
+    color: var(--primary);
+  }
+  .mw__days :global(.mday--more svg) {
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+
+  /* kompakt: tur sayfası yan kartı */
+  .bw--compact .bw__bar {
+    grid-template-columns: 1fr;
+    padding: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 0;
+    box-shadow: none;
+    gap: 0.5rem;
+  }
+  .bw--compact .seg--tour {
+    display: none;
+  }
+  .bw--compact .seg + .seg::before {
+    display: none;
+  }
+  .bw--compact .seg__btn {
+    border: 1px solid var(--line);
+    min-height: 3.75rem;
+  }
+  .bw--compact .bw__go {
+    margin: 0.25rem 0 0;
+    min-height: 3.5rem;
+  }
+  .bw--compact .pop {
+    left: auto;
+    right: 0;
+  }
+
+  @media (max-width: 960px) {
+    .bw__bar {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.25rem;
+    }
+    .seg--tour {
+      grid-column: 1 / -1;
+    }
+    .seg + .seg::before {
+      display: none;
+    }
+    .bw__go {
+      grid-column: 1 / -1;
+      margin: 0.25rem 0 0;
+      min-height: 3.5rem;
+    }
+    .pop--guests {
+      right: 0;
+    }
+  }
+  @media (max-width: 760px) {
+    .bw__bar {
+      grid-template-columns: 1fr;
+    }
+    .bw:not(.bw--compact) .bw__bar {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.15rem;
+      padding: 1.1rem 1rem 1rem;
+      border-radius: 28px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .bw:not(.bw--compact) .mw {
+      display: block;
+      min-width: 0;
+    }
+    .bw:not(.bw--compact) .seg--tour {
+      display: none;
+    }
+    .bw:not(.bw--compact) .seg--date {
+      height: 0;
+    }
+    .bw:not(.bw--compact) .seg--date .seg__btn {
+      display: none;
+    }
+    .bw:not(.bw--compact) .seg--guests .seg__btn {
+      min-height: 3.6rem;
+      padding: 0.5rem 0.75rem;
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+    }
+    .bw:not(.bw--compact) .seg--guests .seg__btn::after {
+      content: '+ / −';
+      margin-left: auto;
+      font-size: 0.8125rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .bw:not(.bw--compact) .bw__go {
+      justify-content: space-between;
+      min-height: 3.6rem;
+      padding-inline: 1.3rem;
+      margin: 0;
+    }
+    .bw:not(.bw--compact) .bw__go-price {
+      display: inline;
+      margin-left: auto;
+      padding: 0.3rem 0.6rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.18);
+      font-size: 0.875rem;
+    }
+    .bw__trust {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      gap: 0.4rem;
+      padding: 0;
+    }
+    .bw__trust li {
+      flex: none;
+      padding: 0.4rem 0.7rem;
+      border-radius: 999px;
+      background: var(--bg-soft);
+      font-size: 0.75rem;
+    }
+    .bw__from {
+      display: none !important;
+    }
+    .pop,
+    .pop--guests {
+      position: fixed;
+      inset: auto 0 0 0;
+      width: auto;
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 24px 24px 0 0;
+      padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+      z-index: 60;
+      animation: sheet-in 0.25s ease-out;
+    }
+    @keyframes sheet-in {
+      from { transform: translateY(100%); }
+    }
+    .pop--cal {
+      width: auto;
+    }
+    .cal__months :global(.cal__grid) {
+      grid-template-columns: repeat(7, 1fr);
+    }
+    .bw__from {
+      margin-left: 0;
+    }
+  }
+</style>

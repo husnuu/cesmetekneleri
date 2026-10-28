@@ -1,0 +1,220 @@
+---
+import Title from '../Title.astro';
+import Icon from '../Icon.astro';
+import { RATING, REVIEWS, sections } from '../../i18n/sections';
+import { LOCALE, type Lang } from '../../site';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const r = sections(lang).reviews;
+const count = new Intl.NumberFormat(LOCALE[lang].intl).format(RATING.count);
+const ratingStr = RATING.value.toLocaleString(LOCALE[lang].intl);
+---
+<section class="section rv-sec">
+  <div class="wrap">
+    <Title parts={r.title} center class="title--lg" />
+    <div class="rv" data-car>
+      <div class="rv__sum">
+        <svg class="rv__g" viewBox="0 0 74 24" aria-label="Google" role="img">
+          <text x="0" y="19" font-family="Arial, sans-serif" font-size="22" font-weight="500" letter-spacing="-0.5"><tspan fill="#4285F4">G</tspan><tspan fill="#EA4335">o</tspan><tspan fill="#FBBC05">o</tspan><tspan fill="#4285F4">g</tspan><tspan fill="#34A853">l</tspan><tspan fill="#EA4335">e</tspan></text>
+        </svg>
+        <div class="rv__stars" aria-label={`${ratingStr} / 5`}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span class="star" style={`--fill:${Math.max(0, Math.min(1, RATING.value - i)) * 100}%`}></span>
+          ))}
+          <span class="rv__val">{ratingStr}</span>
+        </div>
+        <p><b>{r.excellent}</b> • <a href={RATING.googleUrl} target="_blank" rel="noopener">{count}+ {r.reviews}</a></p>
+        {r.note && <p class="rv__note">{r.note}</p>}
+      </div>
+
+      <button class="car__btn" type="button" data-prev aria-label={r.prev}><Icon name="arrow-left" /></button>
+      <div class="car__track rv__track">
+        {REVIEWS.map((rv) => (
+          <article class="rv__card" lang="tr">
+            <p class="rv__src"><span class="rv__gdot">G</span>{r.source}</p>
+            <h3>{rv.title}</h3>
+            <p class="rv__text">{rv.text}</p>
+            <button class="rv__more" type="button" data-more={r.readMore} data-less={r.readLess}>{r.readMore}</button>
+            <div class="rv__foot">
+              <p class="rv__name">{rv.name}</p>
+              <span class="rv__five" aria-label="5/5">{[0, 1, 2, 3, 4].map(() => <span>★</span>)}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+      <button class="car__btn" type="button" data-next aria-label={r.next}><Icon name="arrow" /></button>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.rv__more').forEach((b) => {
+    const text = b.previousElementSibling as HTMLElement;
+    if (text.scrollHeight <= text.clientHeight + 2) b.hidden = true;
+    b.addEventListener('click', () => {
+      const open = text.classList.toggle('is-open');
+      b.textContent = open ? b.dataset.less! : b.dataset.more!;
+    });
+  });
+</script>
+
+<style>
+  .rv {
+    display: grid;
+    grid-template-columns: 15rem auto 1fr auto;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  .rv__sum {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    text-align: center;
+    font-size: 0.9375rem;
+    padding-right: 1rem;
+  }
+  .rv__g {
+    width: 6.5rem;
+    height: auto;
+  }
+  .rv__stars {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+  .star {
+    width: 1.4rem;
+    height: 1.4rem;
+    background: linear-gradient(90deg, var(--star) var(--fill), #dfe3e8 var(--fill));
+    clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+  .rv__val {
+    margin-left: 0.6rem;
+    color: var(--ink);
+  }
+  .rv__sum a {
+    color: var(--ink-strong);
+    text-underline-offset: 0.2em;
+  }
+  .rv__sum b {
+    font-weight: 600;
+    color: var(--ink-strong);
+  }
+  .rv__note {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .rv__track {
+    min-width: 0;
+  }
+  .rv__card {
+    position: relative;
+    width: calc(50% - 0.65rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem 1.6rem 1.4rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-soft);
+  }
+  .rv__card::after {
+    content: '“';
+    position: absolute;
+    top: 0.4rem;
+    right: 1.2rem;
+    font: 800 4.5rem/1 Georgia, serif;
+    color: rgba(20, 99, 216, 0.12);
+    pointer-events: none;
+  }
+  .rv__src {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-weight: 600;
+    color: var(--ink-strong);
+  }
+  .rv__gdot {
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    font: 700 0.8rem/1 Arial, sans-serif;
+    color: #fff;
+    background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0);
+  }
+  .rv__card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .rv__text {
+    font-size: 0.9375rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .rv__text.is-open {
+    -webkit-line-clamp: unset;
+  }
+  .rv__more {
+    justify-self: start;
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: 500 0.875rem var(--font);
+    color: var(--primary);
+    cursor: pointer;
+  }
+  .rv__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+  .rv__name {
+    font-weight: 600;
+    color: var(--ink-strong);
+  }
+  .rv__five {
+    display: flex;
+    gap: 2px;
+  }
+  .rv__five span {
+    display: grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    background: var(--star);
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1;
+  }
+  @media (max-width: 960px) {
+    .rv {
+      grid-template-columns: auto 1fr auto;
+    }
+    .rv__sum {
+      grid-column: 1 / -1;
+      padding: 0;
+    }
+    .rv__card {
+      width: calc(100% - 0.5rem);
+    }
+  }
+  @media (max-width: 560px) {
+    .rv .car__btn {
+      display: none;
+    }
+    .rv {
+      grid-template-columns: 1fr;
+    }
+    .rv__card {
+      width: 86%;
+    }
+  }
+</style>

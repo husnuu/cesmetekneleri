@@ -1,0 +1,128 @@
+---
+import { Image } from 'astro:assets';
+import Title from '../Title.astro';
+import Icon from '../Icon.astro';
+import AnimIcon from '../AnimIcon.astro';
+import { sections } from '../../i18n/sections';
+import { alts } from '../../i18n/alts';
+import { ROUTES, type Lang } from '../../site';
+import { TOURS, bookingUrl } from '../../data/tours';
+import photo from '../../assets/photos/first-class-bungalov.jpg';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const p = sections(lang).perks;
+const icons = ['seat', 'calendar', 'cloud', 'bus'] as const;
+---
+<section class="pk">
+  <div class="pk__photo">
+    <Image src={photo} alt={alts(lang).decks[0]} widths={[700, 1200, 1600]} sizes="50vw" />
+  </div>
+  <div class="wrap pk__inner">
+    <p class="pk__eyebrow">{p.eyebrow}</p>
+    <Title parts={p.title} class="title--lg" />
+    <p class="pk__text">{p.text}</p>
+    <ul class="pk__cards">
+      {p.items.map((it, i) => (
+        <li>
+          <AnimIcon name={icons[i]} size={44} />
+          <div>
+            <h3>{it.t}</h3>
+            <p>{it.d}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+    <div class="pk__btns">
+      <a class="btn" href={bookingUrl(TOURS[0], lang)}>{p.cta}<Icon name="arrow" /></a>
+      <a class="btn btn--outline" href={ROUTES.tour[lang]}>{p.cta2}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pk {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(100deg, #d6f5ea 0%, #d7e6f4 35%, #ddd7f3 60%, #ece9fb 100%);
+    padding-block: clamp(3.5rem, 7vw, 5.5rem);
+  }
+  .pk__photo {
+    position: absolute;
+    top: 4rem;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    border-top-left-radius: 50% 40%;
+    overflow: hidden;
+  }
+  .pk__photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pk__inner {
+    position: relative;
+  }
+  .pk__eyebrow {
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+  }
+  .pk__text {
+    margin: 0.75rem 0 1.75rem;
+    font-size: 1.0625rem;
+  }
+  .pk__cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    max-width: 52rem;
+  }
+  .pk__cards li {
+    display: flex;
+    gap: 1rem;
+    padding: 1.4rem 1.5rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  .pk__cards :global(.ai) {
+    flex: none;
+  }
+  .pk__cards h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+  .pk__cards p {
+    font-size: 0.9rem;
+  }
+  .pk__btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .pk__btns .btn {
+    min-height: 3.4rem;
+    padding-inline: 1.75rem;
+  }
+  @media (max-width: 960px) {
+    .pk__photo {
+      position: relative;
+      top: 0;
+      width: 100%;
+      height: 16rem;
+      border-radius: 0 0 50% 50% / 0 0 20% 20%;
+      margin: -3.5rem 0 2rem;
+    }
+    .pk__cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

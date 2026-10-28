@@ -1,0 +1,63 @@
+// Görsel alt metinleri ve küçük kalıp ifadeler (dile göre)
+import type { Lang } from '../site';
+
+const A = {
+  tr: {
+    collage: ['Poseidon tur teknesi Çeşme açıklarında seyir halinde', 'Poseidon 1 teknesi (2002–2010)', 'Üst güvertede şezlonglar', 'Eşek Adası’nda eşekleri izleyen misafirler', 'Teknenin gece üstten görünümü', 'Akvaryum Koyu’nda yüzen misafirler', 'Kış Limanı sahili'],
+    hero: 'Eşek Adası’nda kumsallı bir koyda demirli Poseidon tur teknesi',
+    decks: ['First Class bungalov yataklar', 'Premium Class şezlonglar, üst güverte', 'Üç katlı tur teknesi seyir halinde'],
+    aboutHero: 'Çeşme’de turkuaz bir koyda demirli tur teknemiz',
+    aerial: 'Tur teknesinin havadan görünümü',
+    cove: 'Kayalık koyda yüzen misafirler',
+    skip: 'İçeriğe geç',
+    hours: 'Her gün 08:00 – 23:00',
+    touristType: ['Aileler', 'Çiftler', 'Arkadaş grupları'],
+    menu: 'Menü',
+    language: 'Dil',
+    call: 'Ara',
+  },
+  en: {
+    collage: ['The Poseidon boat cruising off Çeşme', 'Poseidon 1 (2002–2010)', 'Sun loungers on the upper deck', 'Guests watching the donkeys on Donkey Island', 'The boat from above at night', 'Guests swimming in Aquarium Bay', 'The shore at Kış Limanı'],
+    hero: 'The Poseidon boat anchored in a sandy bay on Donkey Island, Çeşme',
+    decks: ['First Class bungalow daybeds', 'Premium Class sun loungers on the upper deck', 'The three-deck boat under way'],
+    aboutHero: 'Our boat anchored in a turquoise bay in Çeşme',
+    aerial: 'Aerial view of the boat',
+    cove: 'Guests swimming in a rocky cove',
+    skip: 'Skip to content',
+    hours: 'Daily 08:00 – 23:00',
+    touristType: ['Families', 'Couples', 'Groups of friends'],
+    menu: 'Menu',
+    language: 'Language',
+    call: 'Call',
+  },
+  de: {
+    collage: ['Das Poseidon-Boot vor Çeşme in Fahrt', 'Poseidon 1 (2002–2010)', 'Sonnenliegen auf dem Oberdeck', 'Gäste beobachten die Esel auf der Eselinsel', 'Das Boot nachts von oben', 'Gäste schwimmen in der Aquarium-Bucht', 'Ufer von Kış Limanı'],
+    hero: 'Das Poseidon-Boot vor Anker in einer Sandbucht der Eselinsel, Çeşme',
+    decks: ['First-Class-Bungalowbetten', 'Premium-Class-Sonnenliegen auf dem Oberdeck', 'Das dreistöckige Boot in Fahrt'],
+    aboutHero: 'Unser Boot vor Anker in einer türkisfarbenen Bucht in Çeşme',
+    aerial: 'Luftaufnahme des Bootes',
+    cove: 'Gäste beim Schwimmen in einer Felsbucht',
+    skip: 'Zum Inhalt springen',
+    hours: 'Täglich 08:00 – 23:00',
+    touristType: ['Familien', 'Paare', 'Freundesgruppen'],
+    menu: 'Menü',
+    language: 'Sprache',
+    call: 'Anrufen',
+  },
+  fr: {
+    collage: ['Le bateau Poseidon au large de Çeşme', 'Poseidon 1 (2002–2010)', 'Transats sur le pont supérieur', 'Passagers observant les ânes sur l’île aux Ânes', 'Le bateau vu du ciel, de nuit', 'Baignade dans la baie de l’Aquarium', 'Le rivage de Kış Limanı'],
+    hero: 'Le bateau Poseidon ancré dans une crique de sable, île aux Ânes',
+    decks: ['Lits bungalow First Class', 'Transats Premium Class, pont supérieur', 'Le bateau à trois ponts en navigation'],
+    aboutHero: 'Notre bateau ancré dans une crique turquoise à Çeşme',
+    aerial: 'Vue aérienne du bateau',
+    cove: 'Baignade dans une crique rocheuse',
+    skip: 'Aller au contenu',
+    hours: 'Tous les jours 08h00 – 23h00',
+    touristType: ['Familles', 'Couples', 'Groupes d’amis'],
+    menu: 'Menu',
+    language: 'Langue',
+    call: 'Appeler',
+  },
+} satisfies Record<Lang, unknown>;
+
+export const alts = (lang: Lang) => A[lang];

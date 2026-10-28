@@ -1,0 +1,71 @@
+# Hostinger / Apache için. Eski sitedeki tüm URL'ler aynen korunur;
+# aşağıdakiler yalnızca varyasyonları tek bir canonical adrese toplar (301).
+Options -MultiViews
+DirectorySlash Off
+RewriteEngine On
+
+# http -> https, www -> çıplak domain
+RewriteCond %{HTTPS} off [OR]
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteRule ^(.*)$ https://cesmetekneleri.com/$1 [R=301,L]
+
+# /index.html ve .html uzantılı istekler -> uzantısız
+RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+RewriteRule ^ / [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# Sondaki eğik çizgiyi kaldır (/hakkimizda/ -> /hakkimizda)
+RewriteCond %{REQUEST_URI} ^/(.+)/$
+RewriteRule ^ /%1 [R=301,L]
+
+# Eski site yapıcının olası varyasyonları
+RewriteRule ^(home|anasayfa|tr)$ / [R=301,L,NC]
+RewriteRule ^tr/(.+)$ /$1 [R=301,L,NC]
+RewriteRule ^fr/home$ /fr [R=301,L,NC]
+RewriteRule ^(rezervasyon|tekne-turu)$ /cesme-tekne-turu [R=301,L,NC]
+RewriteRule ^(cesme-tekne-turlari|tours)$ /turlar [R=301,L,NC]
+RewriteRule ^(sss|faq|sikca-sorulan-sorular)$ /sik-sorulan-sorular [R=301,L,NC]
+RewriteRule ^(gun-batimi-turu|gunbatimi-turu)$ /cesme-gun-batimi-turu [R=301,L,NC]
+RewriteRule ^(dalis-turu|tuplu-dalis)$ /cesme-tuplu-dalis-turu [R=301,L,NC]
+RewriteRule ^(about|hakkinda)$ /hakkimizda [R=301,L,NC]
+RewriteRule ^(contact|iletisim-bilgileri)$ /iletisim [R=301,L,NC]
+
+# Uzantısız adresleri .html dosyasından sun
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+)$ $1.html [L]
+
+ErrorDocument 404 /404.html
+
+<Files "_redirects">
+  Require all denied
+</Files>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/avif "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml
+</IfModule>
+
+# Güvenlik başlıkları
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  <FilesMatch "\.(avif|webp|jpe?g|png|svg|woff2|css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+AddType application/manifest+json .webmanifest
