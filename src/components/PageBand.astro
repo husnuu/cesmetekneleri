@@ -24,7 +24,7 @@ const { image, eyebrow, title, lead, crumbs } = Astro.props;
     </nav>
     <p class="band__eyebrow">{eyebrow}</p>
     <h1>{title}</h1>
-    {lead && <p class="band__lead">{lead}</p>}
+    {lead && <p class="band__lead" data-speakable>{lead}</p>}
     <slot />
   </div>
 </section>

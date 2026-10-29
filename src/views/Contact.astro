@@ -21,7 +21,6 @@ const url = (r: string) => new URL(r, SITE.url).href;
 const mapsQ = encodeURIComponent(SITE.mapsQuery);
 const faqs = faqCategories(lang)[0].items.slice(0, 4);
 const jsonld = [
-  { '@context': 'https://schema.org', '@type': 'ContactPage', name: p.h1, url: url(ROUTES.contact[lang]), inLanguage: lang, about: { '@id': `${SITE.url}/#business` } },
   {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -37,7 +36,7 @@ const actions = [
   { icon: 'mail' as const, title: p.mailT, desc: p.mailD, value: SITE.email, href: `mailto:${SITE.email}`, ext: false, cls: 'mail' },
 ];
 ---
-<Base lang={lang} route="contact" title={c.title} description={c.description} ogImage={bandImg} jsonld={jsonld}>
+<Base lang={lang} route="contact" title={c.title} description={c.description} ogImage={bandImg} jsonld={jsonld} pageType="ContactPage">
   <PageBand image={bandImg} eyebrow={p.eyebrow} title={p.h1} lead={p.lead} crumbs={[{ label: d.breadcrumbHome, href: ROUTES.home[lang] }, { label: d.nav.contact }]} />
 
   <div class="wrap acts">

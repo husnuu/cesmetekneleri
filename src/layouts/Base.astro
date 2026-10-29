@@ -9,6 +9,7 @@ import { SOCIAL } from '../i18n/sections';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import defaultOg from '../assets/photos/cesme-tekne-turu-koy.jpg';
+import manropeLatin from '@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url';
 
 interface Props {
   lang: Lang;
@@ -19,17 +20,17 @@ interface Props {
   jsonld?: Record<string, unknown>[];
   noindex?: boolean;
   bookHref?: string;
+  pageType?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage' | 'FAQPage' | 'ItemPage';
 }
 
-const { lang, route, title, description, ogImage = defaultOg, jsonld = [], noindex = false, bookHref } = Astro.props;
+const { lang, route, title, description, ogImage = defaultOg, jsonld = [], noindex = false, bookHref, pageType = 'WebPage' } = Astro.props;
 const d = t(lang);
 const abs = (p: string) => new URL(p, SITE.url).href;
 const canonical = route ? abs(ROUTES[route][lang]) : undefined;
 const og = await getImage({ src: ogImage, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 78 });
 
 const business = {
-  '@context': 'https://schema.org',
-  '@type': 'TravelAgency',
+  '@type': ['TravelAgency', 'LocalBusiness'],
   '@id': `${SITE.url}/#business`,
   name: SITE.name,
   alternateName: ['Çeşme Tekne Turu', 'Poseidon Çeşme'],
@@ -72,7 +73,32 @@ const business = {
   },
   sameAs: Object.values(SOCIAL).concat('https://cesmetekneturu.net'),
 };
-const schemas = [business, ...jsonld];
+// Tek @graph: işletme + web sitesi + bu sayfa. Sayfaya özgü bloklar (tur, SSS, breadcrumb) ayrıca eklenir.
+const website = {
+  '@type': 'WebSite',
+  '@id': `${SITE.url}/#website`,
+  url: SITE.url + '/',
+  name: SITE.name,
+  alternateName: 'Poseidon Çeşme',
+  publisher: { '@id': `${SITE.url}/#business` },
+  inLanguage: LANGS.map((l) => LOCALE[l].intl),
+};
+const pageUrl = canonical ?? abs(Astro.url.pathname);
+const webpage = {
+  '@type': pageType,
+  '@id': `${pageUrl}#webpage`,
+  url: pageUrl,
+  name: title,
+  description,
+  inLanguage: LOCALE[lang].intl,
+  isPartOf: { '@id': `${SITE.url}/#website` },
+  about: { '@id': `${SITE.url}/#business` },
+  primaryImageOfPage: { '@type': 'ImageObject', url: abs(og.src), width: 1200, height: 630 },
+  dateModified: new Date().toISOString().slice(0, 10),
+  speakable: { '@type': 'SpeakableSpecification', cssSelector: ['h1', '[data-speakable]'] },
+};
+const graph = { '@context': 'https://schema.org', '@graph': [business, website, webpage] };
+const schemas = [graph, ...jsonld];
 ---
 <!doctype html>
 <html lang={lang}>
@@ -100,6 +126,8 @@ const schemas = [business, ...jsonld];
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="preload" href={manropeLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM summary" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE.name} />

@@ -16,6 +16,8 @@ import { LOCALE, ROUTES, SITE, fmtNum, type Lang } from '../site';
 import { t } from '../i18n';
 import { alts } from '../i18n/alts';
 import { RATING, sections } from '../i18n/sections';
+import { TOURS } from '../data/tours';
+import { faqCategories } from '../data/faq';
 
 import hero from '../assets/photos/cesme-koy-tekne-adalar.jpg';
 import refTursab from '../assets/refs/tursab.png';
@@ -45,8 +47,20 @@ const refs = [
 ];
 const alt = alts(lang);
 
+const fc = faqCategories(lang);
+const homeFaq = [...fc[0].items.slice(0, 3), ...fc[1].items.slice(0, 3)];
 const jsonld = [
-  { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE.name, url: SITE.url + '/', inLanguage: lang },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: u.toursTitle.join('').trim(),
+    itemListElement: TOURS.map((tr, i) => ({ '@type': 'ListItem', position: i + 1, name: tr[lang].title, url: new URL(ROUTES[tr.key][lang], SITE.url).href })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: homeFaq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
 ];
 ---
 <Base lang={lang} route="home" title={h.title} description={h.description} ogImage={hero} jsonld={jsonld}>
@@ -59,7 +73,7 @@ const jsonld = [
           <p class="hero__rate"><span class="hero__stars" aria-hidden="true">★★★★★</span><b>{RATING.value.toLocaleString(LOCALE[lang].intl)}</b><span>·</span>{fmtNum(RATING.count, lang)}+ {u.reviewsWord}</p>
           <p class="hero__kicker">{u.heroLine1}</p>
           <h1>{u.heroNewest}</h1>
-          <p class="hero__lead">{u.heroText}</p>
+          <p class="hero__lead" data-speakable>{u.heroText}</p>
         </div>
         <ul class="hero__chips" aria-hidden="true">
           <li><Icon name="clock" />{u.heroChip1}</li>
@@ -154,6 +168,25 @@ const jsonld = [
           </li>
         ))}
       </ul>
+    </div>
+  </section>
+
+  <section class="section section--soft hfaq">
+    <div class="wrap hfaq__grid">
+      <div>
+        <p class="eyebrow">{s.faqPage.eyebrow}</p>
+        <Title parts={['', s.td.faq, '']} class="title--lg" />
+        <p class="sub">{s.faqPage.lead}</p>
+        <a class="btn btn--outline" href={ROUTES.faq[lang]}>{s.td.allFaq}<Icon name="arrow" /></a>
+      </div>
+      <div class="hfaq__list">
+        {homeFaq.map((f, i) => (
+          <details open={i === 0}>
+            <summary><h3>{f.q}</h3><span class="hfaq__pm" aria-hidden="true"></span></summary>
+            <p data-speakable>{f.a}</p>
+          </details>
+        ))}
+      </div>
     </div>
   </section>
 
@@ -287,6 +320,92 @@ const jsonld = [
     .hero__text,
     .hero__chips {
       animation: none;
+    }
+  }
+
+  .hfaq__grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 2.5rem 4rem;
+    align-items: start;
+  }
+  .hfaq__grid > div:first-child {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+    position: sticky;
+    top: 6rem;
+  }
+  .hfaq__grid .sub {
+    margin: 0 0 0.5rem;
+  }
+  .hfaq__list {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .hfaq__list details {
+    padding: 0 1.4rem;
+    border-radius: var(--radius);
+    background: #fff;
+    border: 1px solid var(--line);
+    transition: box-shadow 0.2s;
+  }
+  .hfaq__list details[open] {
+    box-shadow: var(--shadow);
+    border-color: transparent;
+  }
+  .hfaq__list summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 1.15rem;
+    cursor: pointer;
+  }
+  .hfaq__list summary::-webkit-details-marker {
+    display: none;
+  }
+  .hfaq__list summary h3 {
+    font-size: 1.0625rem;
+  }
+  .hfaq__pm {
+    position: relative;
+    flex: none;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: var(--primary-soft);
+  }
+  .hfaq__pm::before,
+  .hfaq__pm::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0.75rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--primary);
+    transform: translate(-50%, -50%);
+    transition: transform 0.25s;
+  }
+  .hfaq__pm::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+  details[open] .hfaq__pm::after {
+    transform: translate(-50%, -50%) rotate(0);
+  }
+  .hfaq__list details p {
+    padding-bottom: 1.2rem;
+    color: var(--ink);
+  }
+  @media (max-width: 860px) {
+    .hfaq__grid {
+      grid-template-columns: 1fr;
+    }
+    .hfaq__grid > div:first-child {
+      position: static;
     }
   }
 

@@ -2,16 +2,110 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/index", "destination": "/", "permanent": true },
-    { "source": "/(home|anasayfa|tr)", "destination": "/", "permanent": true },
-    { "source": "/tr/:path*", "destination": "/:path*", "permanent": true },
-    { "source": "/fr/home", "destination": "/fr", "permanent": true },
-    { "source": "/(rezervasyon|tekne-turu)", "destination": "/cesme-tekne-turu", "permanent": true },
-    { "source": "/(cesme-tekne-turlari|tours)", "destination": "/turlar", "permanent": true },
-    { "source": "/(sss|faq|sikca-sorulan-sorular)", "destination": "/sik-sorulan-sorular", "permanent": true },
-    { "source": "/(gun-batimi-turu|gunbatimi-turu)", "destination": "/cesme-gun-batimi-turu", "permanent": true },
-    { "source": "/(dalis-turu|tuplu-dalis)", "destination": "/cesme-tuplu-dalis-turu", "permanent": true },
-    { "source": "/(about|hakkinda)", "destination": "/hakkimizda", "permanent": true },
-    { "source": "/(contact|iletisim-bilgileri)", "destination": "/iletisim", "permanent": true }
+    {
+      "source": "/index",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/(home|anasayfa|tr)",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/tr/:path*",
+      "destination": "/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/fr/home",
+      "destination": "/fr",
+      "permanent": true
+    },
+    {
+      "source": "/(rezervasyon|tekne-turu)",
+      "destination": "/cesme-tekne-turu",
+      "permanent": true
+    },
+    {
+      "source": "/(cesme-tekne-turlari|tours)",
+      "destination": "/turlar",
+      "permanent": true
+    },
+    {
+      "source": "/(sss|faq|sikca-sorulan-sorular)",
+      "destination": "/sik-sorulan-sorular",
+      "permanent": true
+    },
+    {
+      "source": "/(gun-batimi-turu|gunbatimi-turu)",
+      "destination": "/cesme-gun-batimi-turu",
+      "permanent": true
+    },
+    {
+      "source": "/(dalis-turu|tuplu-dalis)",
+      "destination": "/cesme-tuplu-dalis-turu",
+      "permanent": true
+    },
+    {
+      "source": "/(about|hakkinda)",
+      "destination": "/hakkimizda",
+      "permanent": true
+    },
+    {
+      "source": "/(contact|iletisim-bilgileri)",
+      "destination": "/iletisim",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/_astro/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(sitemap.xml|llms.txt|robots.txt)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/site.webmanifest",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
+    }
   ]
 }

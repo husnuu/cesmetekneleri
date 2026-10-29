@@ -35,7 +35,7 @@ const jsonld = [
   },
 ];
 ---
-<Base lang={lang} route="tours" title={p.title} description={p.desc} ogImage={bandImg} jsonld={jsonld}>
+<Base lang={lang} route="tours" title={p.title} description={p.desc} ogImage={bandImg} jsonld={jsonld} pageType="CollectionPage">
   <PageBand image={bandImg} eyebrow={p.eyebrow} title={p.h1} lead={p.lead} crumbs={[{ label: d.breadcrumbHome, href: ROUTES.home[lang] }, { label: p.eyebrow }]} />
 
   <div class="wrap widget">

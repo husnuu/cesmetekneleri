@@ -46,7 +46,7 @@ const jsonld = [
     '@type': ['Product', 'TouristTrip'],
     name: x.title,
     description: x.metaDesc,
-    image: [url(hero.src)],
+    image: [hero, ...gallery].map((g) => url(g.src)),
     url: url(ROUTES[tourKey][lang]),
     brand: { '@type': 'Brand', name: 'Poseidon Çeşme' },
     provider: { '@id': `${SITE.url}/#business` },
@@ -55,7 +55,15 @@ const jsonld = [
       '@type': 'ItemList',
       itemListElement: x.itinerary.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.title })),
     },
-    aggregateRating: { '@type': 'AggregateRating', ratingValue: tour.rating, reviewCount: tour.reviews, bestRating: 5 },
+    aggregateRating: { '@type': 'AggregateRating', ratingValue: tour.rating, reviewCount: tour.reviews, bestRating: 5, worstRating: 1 },
+    review: reviews.map((r) => ({
+      '@type': 'Review',
+      author: { '@type': 'Person', name: r.name },
+      name: r.title,
+      reviewBody: r.text,
+      inLanguage: 'tr',
+      reviewRating: { '@type': 'Rating', ratingValue: 5, bestRating: 5 },
+    })),
     offers: {
       '@type': 'AggregateOffer',
       priceCurrency: SITE.currency,
@@ -82,7 +90,7 @@ const jsonld = [
   },
 ];
 ---
-<Base lang={lang} route={tourKey} title={x.metaTitle} description={x.metaDesc} ogImage={hero} jsonld={jsonld} bookHref={book}>
+<Base lang={lang} route={tourKey} title={x.metaTitle} description={x.metaDesc} ogImage={hero} jsonld={jsonld} bookHref={book} pageType="ItemPage">
   <div class="wrap head">
     <nav class="crumbs" aria-label="breadcrumb">
       <a href={ROUTES.home[lang]}>{d.breadcrumbHome}</a><span>›</span><a href={ROUTES.tours[lang]}>{s.tours}</a><span>›</span><span aria-current="page">{x.title}</span>
@@ -108,7 +116,7 @@ const jsonld = [
 
   <div class="wrap layout">
     <div class="main">
-      <p class="lead">{x.short}</p>
+      <p class="lead" data-speakable>{x.short}</p>
 
       <section class="blk">
         <h2>{s.highlights}</h2>
